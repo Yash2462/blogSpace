@@ -1,81 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Paper,
-  Grid,
-  Divider,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  CircularProgress,
-  Snackbar,
-  Alert,
-  Chip,
-  IconButton,
-  Collapse,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Card,
-  CardContent,
-  Stack,
-  Tooltip,
-  Fade,
-  Container,
-  GlobalStyles
-} from '@mui/material';
-import {
-  ExpandLess,
-  ExpandMore,
-  FiberManualRecord,
-  Visibility,
-  VisibilityOff,
-  Save,
-  Publish,
-  ArrowBack,
-  Image,
-  Category,
-  Description,
-  Title,
-  AccessTime,
-  Edit,
-  AutoAwesome,
-  CheckCircle,
-  Warning,
-  Info
-} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import { 
+  ArrowLeft, Type, AlignLeft, Image as ImageIcon, FolderOpen, 
+  Edit3, Eye, Loader2, Settings, CheckCircle2, AlertCircle, Info, ChevronDown, ChevronUp, Save
+} from 'lucide-react';
 
 const publishingTips = [
   {
-    icon: <Title />,
+    icon: <Type className="w-5 h-5 text-primary" />,
     title: 'Compelling Title',
     description: 'Write a title that grabs attention and clearly describes your content'
   },
   {
-    icon: <Description />,
+    icon: <AlignLeft className="w-5 h-5 text-primary" />,
     title: 'Engaging Description',
     description: 'Keep your description concise and make readers want to continue'
   },
   {
-    icon: <Image />,
+    icon: <ImageIcon className="w-5 h-5 text-primary" />,
     title: 'Quality Image',
     description: 'Add a high-quality featured image that represents your content'
   },
   {
-    icon: <Category />,
+    icon: <FolderOpen className="w-5 h-5 text-primary" />,
     title: 'Right Category',
     description: 'Choose the most relevant category for better discoverability'
   },
   {
-    icon: <Edit />,
+    icon: <Edit3 className="w-5 h-5 text-primary" />,
     title: 'Clear Formatting',
     description: 'Use clear paragraphs and formatting for better readability'
   }
@@ -182,510 +136,327 @@ const CreatePost = () => {
   };
 
   return (
-    <>
-      <GlobalStyles
-        styles={{
-          'body': {
-            overflowY: 'auto',
-            height: 'auto'
-          },
-          'html': {
-            height: 'auto'
-          },
-          '*::-webkit-scrollbar': {
-            width: '6px',
-          },
-          '*::-webkit-scrollbar-track': {
-            background: '#f1f1f1',
-            borderRadius: '10px',
-          },
-          '*::-webkit-scrollbar-thumb': {
-            background: '#c1c1c1',
-            borderRadius: '10px',
-          },
-          '*::-webkit-scrollbar-thumb:hover': {
-            background: '#a8a8a8',
-          },
-        }}
-      />
-      
-      <Box sx={{ 
-        background: 'white',
-        py: 3,
-        flex: 1,
-        overflowY: 'auto'
-      }}>
-        <Container 
-          maxWidth="xl" 
-          sx={{ 
-            pb: 5,
-            maxWidth: { lg: '1200px', xl: '1400px' },
-            mx: 'auto'
-          }}
-        >
-          {/* Simple Header */}
-          <Box sx={{ 
-            mb: 3, 
-            textAlign: { xs: 'center', lg: 'left' },
-            maxWidth: { lg: '1000px' },
-            mx: { lg: 'auto' }
-          }}>
-            <Button
-              startIcon={<ArrowBack />}
-              onClick={() => navigate('/posts')}
-              sx={{ mb: 2, color: '#1e293b' }}
-            >
-              Back to Posts
-            </Button>
-            <Typography variant="h3" fontWeight={700} sx={{ mb: 1 }}>
-              Create New Post
-            </Typography>
-            <Typography variant="h6" color="text.secondary">
-              Share your thoughts with the world
-            </Typography>
-          </Box>
+    <div className="min-h-[calc(100vh-64px)] bg-background py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header */}
+        <div className="mb-8 max-w-5xl mx-auto">
+          <button
+            onClick={() => navigate('/posts')}
+            className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-4 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Posts
+          </button>
+          <h1 className="text-3xl font-bold tracking-tight mb-2 text-foreground">Create New Post</h1>
+          <p className="text-muted-foreground">Share your thoughts with the world</p>
+        </div>
 
-          <Grid container spacing={3} sx={{ maxWidth: { lg: '1000px' }, mx: { lg: 'auto' } }}>
-            {/* Main Form Area */}
-            <Grid item xs={12} lg={8}>
-              <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'visible', background: 'white' }}>
-                <Box sx={{ p: { xs: 2, sm: 3, lg: 4 } }}>
-                  {!previewMode ? (
-                    <form onSubmit={handleSubmit}>
-                      <Stack spacing={3}>
-                        {/* Post Stats */}
-                        <Card elevation={1} sx={{ borderRadius: 2, bgcolor: '#f8fafc' }}>
-                          <CardContent sx={{ py: 2, px: { xs: 2, sm: 3 } }}>
-                            <Typography variant="subtitle2" fontWeight={600} mb={2} color="text.secondary">
-                              Post Statistics
-                            </Typography>
-                            <Grid container spacing={2}>
-                              <Grid item xs={6} sm={3}>
-                                <Box textAlign="center" sx={{ p: 1 }}>
-                                  <Typography variant="h6" fontWeight={700} color="#1e293b">
-                                    {wordCount}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary">
-                                    Words
-                                  </Typography>
-                                </Box>
-                              </Grid>
-                              <Grid item xs={6} sm={3}>
-                                <Box textAlign="center" sx={{ p: 1 }}>
-                                  <Typography variant="h6" fontWeight={700} color="#1e293b">
-                                    {charCount}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary">
-                                    Characters
-                                  </Typography>
-                                </Box>
-                              </Grid>
-                              <Grid item xs={6} sm={3}>
-                                <Box textAlign="center" sx={{ p: 1 }}>
-                                  <Typography variant="h6" fontWeight={700} color="#1e293b">
-                                    {readingTime}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary">
-                                    Min Read
-                                  </Typography>
-                                </Box>
-                              </Grid>
-                              <Grid item xs={6} sm={3}>
-                                <Box textAlign="center" sx={{ p: 1 }}>
-                                  <Typography variant="h6" fontWeight={700} color={validation.isComplete ? "#4caf50" : "#f44336"}>
-                                    {validation.isComplete ? "Ready" : "Draft"}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary">
-                                    Status
-                                  </Typography>
-                                </Box>
-                              </Grid>
-                            </Grid>
-                          </CardContent>
-                        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-5xl mx-auto">
+          
+          {/* Main Form Area */}
+          <div className="lg:col-span-8">
+            <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden p-6 sm:p-8">
+              {!previewMode ? (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  
+                  {/* Post Stats */}
+                  <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">Post Statistics</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <p className="text-xl font-bold text-foreground">{wordCount}</p>
+                        <p className="text-xs text-muted-foreground">Words</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xl font-bold text-foreground">{charCount}</p>
+                        <p className="text-xs text-muted-foreground">Characters</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xl font-bold text-foreground">{readingTime}</p>
+                        <p className="text-xs text-muted-foreground">Min Read</p>
+                      </div>
+                      <div className="text-center">
+                        <p className={`text-xl font-bold ${validation.isComplete ? 'text-green-500' : 'text-red-500'}`}>
+                          {validation.isComplete ? 'Ready' : 'Draft'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Status</p>
+                      </div>
+                    </div>
+                  </div>
 
-                        {/* Title Field */}
-                        <Box>
-                          <Typography variant="subtitle1" fontWeight="bold" component="label" sx={{ display: 'block', mb: 1, textAlign: 'left' }}>
-                            Post Title
-                          </Typography>
-                          <TextField
-                            name="title"
-                            fullWidth
-                            value={formData.title}
-                            onChange={handleChange}
-                            variant="outlined"
-                            size="small"
-                            placeholder="Enter a compelling title for your post..."
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                fontSize: { xs: '1rem', sm: '1.1rem' },
-                                fontWeight: 500,
-                                minHeight: { xs: '45px', sm: '50px' },
-                                '&:hover fieldset': {
-                                  borderColor: '#1e293b',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#1e293b',
-                                },
-                              },
-                            }}
-                          />
-                        </Box>
-
-                        {/* Description Field */}
-                        <Box>
-                          <Typography variant="subtitle1" fontWeight="bold" component="label" sx={{ display: 'block', mb: 1, textAlign: 'left' }}>
-                            Post Description
-                          </Typography>
-                          <TextField
-                            name="description"
-                            fullWidth
-                            value={formData.description}
-                            onChange={handleChange}
-                            multiline
-                            rows={3}
-                            variant="outlined"
-                            size="small"
-                            placeholder="Write a brief description of your post..."
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                fontSize: { xs: '0.9rem', sm: '0.95rem' },
-                                '&:hover fieldset': {
-                                  borderColor: '#1e293b',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#1e293b',
-                                },
-                              },
-                            }}
-                          />
-                        </Box>
-
-                        {/* Content Field */}
-                        <Box>
-                          <Typography variant="subtitle1" fontWeight="bold" component="label" sx={{ display: 'block', mb: 1, textAlign: 'left' }}>
-                            Post Content
-                          </Typography>
-                          <TextField
-                            name="data"
-                            fullWidth
-                            value={formData.data}
-                            onChange={handleChange}
-                            multiline
-                            rows={12}
-                            variant="outlined"
-                            size="small"
-                            placeholder="Write your post content here... Use paragraphs to organize your thoughts."
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                fontSize: { xs: '0.85rem', sm: '0.9rem' },
-                                '&:hover fieldset': {
-                                  borderColor: '#1e293b',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#1e293b',
-                                },
-                              },
-                            }}
-                          />
-                        </Box>
-
-                        {/* Action Buttons */}
-                        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                          <Button
-                            startIcon={previewMode ? <Edit /> : <Visibility />}
-                            onClick={handlePreviewToggle}
-                            variant="outlined"
-                            sx={{ 
-                              borderColor: '#1e293b',
-                              color: '#1e293b',
-                              '&:hover': { borderColor: '#475569', backgroundColor: '#f1f5f9' }
-                            }}
-                          >
-                            {previewMode ? 'Exit Preview' : 'Preview Post'}
-                          </Button>
-                          
-                          <Button
-                            startIcon={<Save />}
-                            variant="contained"
-                            disabled={!isDirty || isLoading}
-                            onClick={handleSubmit}
-                            sx={{ 
-                              backgroundColor: '#1e293b',
-                              '&:hover': { backgroundColor: '#334155' },
-                              '&:disabled': { backgroundColor: '#cbd5e1' }
-                            }}
-                          >
-                            {isLoading ? <CircularProgress size={20} color="inherit" /> : 'Publish Post'}
-                          </Button>
-                        </Box>
-                      </Stack>
-                    </form>
-                  ) : (
-                    <Box>
-                      <Fade in={true} timeout={500}>
-                        <Card sx={{ mb: 3, border: '1px solid #e0e0e0' }}>
-                          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                            {/* Exit Preview Button */}
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                              <Typography variant="h6" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                                Preview Mode
-                              </Typography>
-                              <Button
-                                startIcon={<Edit />}
-                                onClick={handlePreviewToggle}
-                                variant="outlined"
-                                size="small"
-                                sx={{ 
-                                  borderColor: '#1e293b',
-                                  color: '#1e293b',
-                                  '&:hover': { borderColor: '#475569', backgroundColor: '#f1f5f9' }
-                                }}
-                              >
-                                Exit Preview
-                              </Button>
-                            </Box>
-                            
-                            {selectedCategory && (
-                              <Chip 
-                                label={selectedCategory.name} 
-                                color="primary" 
-                                sx={{ mb: 2 }}
-                                icon={<Category />}
-                              />
-                            )}
-                            
-                            <Typography variant="h4" fontWeight={600} gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2rem', lg: '2.5rem' } }}>
-                              {formData.title || 'Your Post Title'}
-                            </Typography>
-                            
-                            <Typography variant="h6" color="text.secondary" sx={{ mb: 3, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
-                              {formData.description || 'Your post description will appear here...'}
-                            </Typography>
-                            
-                            {formData.postImage && (
-                              <Box sx={{ mb: 3 }}>
-                                <img 
-                                  src={formData.postImage} 
-                                  alt="preview" 
-                                  style={{ 
-                                    width: '100%', 
-                                    borderRadius: 12, 
-                                    maxHeight: 400,
-                                    objectFit: 'cover'
-                                  }} 
-                                />
-                              </Box>
-                            )}
-                            
-                            <Divider sx={{ my: 3 }} />
-                            
-                            <Box sx={{ 
-                              whiteSpace: 'pre-wrap', 
-                              bgcolor: '#fafafa', 
-                              p: { xs: 2, sm: 3 }, 
-                              borderRadius: 2,
-                              fontSize: { xs: '1rem', sm: '1.1rem' },
-                              lineHeight: 1.7
-                            }}>
-                              {formData.data || 'Your post content will appear here...'}
-                            </Box>
-                          </CardContent>
-                        </Card>
-                      </Fade>
-                    </Box>
-                  )}
-                </Box>
-              </Paper>
-            </Grid>
-
-            {/* Sidebar */}
-            <Grid item xs={12} lg={4}>
-              <Stack spacing={2}>
-                {/* Post Settings */}
-                <Card elevation={2} sx={{ borderRadius: 2 }}>
-                  <CardContent sx={{ pb: 2, px: { xs: 2, sm: 3 } }}>
-                    <Typography variant="h6" mb={2} display="flex" alignItems="center" gap={1}>
-                      <AutoAwesome sx={{ color: '#1e293b' }} />
-                      Settings
-                    </Typography>
-                    
-                    <FormControl fullWidth margin="normal" size="small">
-                      <InputLabel>Category</InputLabel>
-                      <Select
-                        value={formData.categoryId}
-                        label="Category"
-                        onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                        disabled={categoriesLoading}
-                        sx={{
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: validation.category ? '#4caf50' : '#f44336',
-                          },
-                        }}
-                      >
-                        {categories.map(cat => (
-                          <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    
-                    <TextField
-                      label="Featured Image URL"
-                      name="postImage"
-                      fullWidth
-                      margin="normal"
-                      size="small"
-                      value={formData.postImage}
+                  {/* Title Field */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-foreground block">
+                      Post Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={formData.title}
                       onChange={handleChange}
-                      placeholder="https://example.com/image.jpg"
-                      sx={{
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: formData.postImage ? '#4caf50' : '#e0e0e0',
-                        },
-                      }}
+                      placeholder="Enter a compelling title for your post..."
+                      className="w-full px-4 py-3 rounded-lg border border-input bg-background/50 text-foreground focus:bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none text-lg font-medium"
                     />
-                  </CardContent>
-                </Card>
+                  </div>
 
-                {/* Status Indicators */}
-                <Card elevation={2} sx={{ borderRadius: 2 }}>
-                  <CardContent sx={{ pb: 2, px: { xs: 2, sm: 3 } }}>
-                    <Typography variant="h6" mb={2} display="flex" alignItems="center" gap={1}>
-                      <CheckCircle sx={{ color: '#1e293b' }} />
-                      Status
-                    </Typography>
+                  {/* Description Field */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-foreground block">
+                      Post Description
+                    </label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      rows={3}
+                      placeholder="Write a brief description of your post..."
+                      className="w-full px-4 py-3 rounded-lg border border-input bg-background/50 text-foreground focus:bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none resize-none"
+                    />
+                  </div>
+
+                  {/* Content Field */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-foreground block">
+                      Post Content <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="data"
+                      value={formData.data}
+                      onChange={handleChange}
+                      rows={12}
+                      placeholder="Write your post content here... Use paragraphs to organize your thoughts."
+                      className="w-full px-4 py-3 rounded-lg border border-input bg-background/50 text-foreground focus:bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none resize-y min-h-[250px]"
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap gap-4 pt-4 border-t border-border mt-8">
+                    <button
+                      type="button"
+                      onClick={handlePreviewToggle}
+                      className="flex items-center px-5 py-2.5 rounded-lg border border-border bg-card text-foreground font-medium hover:bg-muted transition-colors"
+                    >
+                      {previewMode ? (
+                        <><Edit3 className="w-4 h-4 mr-2" /> Exit Preview</>
+                      ) : (
+                        <><Eye className="w-4 h-4 mr-2" /> Preview Post</>
+                      )}
+                    </button>
                     
-                    <Stack spacing={1}>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        <Box display="flex" alignItems="center" gap={1}>
-                          {validation.title ? <CheckCircle color="success" fontSize="small" /> : <Warning color="error" fontSize="small" />}
-                          <Typography variant="body2">Title</Typography>
-                        </Box>
-                        <Typography variant="caption" color={validation.title ? "success.main" : "error.main"}>
-                          {validation.title ? "✓" : "!"}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        <Box display="flex" alignItems="center" gap={1}>
-                          {validation.content ? <CheckCircle color="success" fontSize="small" /> : <Warning color="error" fontSize="small" />}
-                          <Typography variant="body2">Content</Typography>
-                        </Box>
-                        <Typography variant="caption" color={validation.content ? "success.main" : "error.main"}>
-                          {validation.content ? "✓" : "!"}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        <Box display="flex" alignItems="center" gap={1}>
-                          {validation.category ? <CheckCircle color="success" fontSize="small" /> : <Warning color="error" fontSize="small" />}
-                          <Typography variant="body2">Category</Typography>
-                        </Box>
-                        <Typography variant="caption" color={validation.category ? "success.main" : "error.main"}>
-                          {validation.category ? "✓" : "!"}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        <Box display="flex" alignItems="center" gap={1}>
-                          {validation.description ? <CheckCircle color="success" fontSize="small" /> : <Info color="info" fontSize="small" />}
-                          <Typography variant="body2">Description</Typography>
-                        </Box>
-                        <Typography variant="caption" color={validation.description ? "success.main" : "info.main"}>
-                          {validation.description ? "✓" : "○"}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        <Box display="flex" alignItems="center" gap={1}>
-                          {validation.image ? <CheckCircle color="success" fontSize="small" /> : <Info color="info" fontSize="small" />}
-                          <Typography variant="body2">Image</Typography>
-                        </Box>
-                        <Typography variant="caption" color={validation.image ? "success.main" : "info.main"}>
-                          {validation.image ? "✓" : "○"}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </CardContent>
-                </Card>
+                    <button
+                      type="submit"
+                      disabled={!isDirty || isLoading || !validation.isComplete}
+                      className="flex items-center px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isLoading ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Publishing...</>
+                      ) : (
+                        <><Save className="w-4 h-4 mr-2" /> Publish Post</>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="animate-in fade-in zoom-in-95 duration-200">
+                  {/* Exit Preview Button */}
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b border-border">
+                    <span className="text-sm italic text-muted-foreground font-medium px-3 py-1 bg-muted rounded-full">Preview Mode</span>
+                    <button
+                      onClick={handlePreviewToggle}
+                      className="flex items-center px-4 py-2 rounded-lg border border-border bg-card text-sm font-medium hover:bg-muted text-foreground transition-colors"
+                    >
+                      <Edit3 className="w-4 h-4 mr-2" /> Exit Preview
+                    </button>
+                  </div>
+                  
+                  {selectedCategory && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary mb-6">
+                      <FolderOpen className="w-3.5 h-3.5 mr-1" />
+                      {selectedCategory.name}
+                    </span>
+                  )}
+                  
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight leading-tight text-foreground">
+                    {formData.title || 'Your Post Title'}
+                  </h1>
+                  
+                  <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                    {formData.description || 'Your post description will appear here...'}
+                  </p>
+                  
+                  {formData.postImage && (
+                    <div className="mb-10 rounded-2xl overflow-hidden bg-muted border border-border/50">
+                      <img 
+                        src={formData.postImage} 
+                        alt="preview" 
+                        className="w-full max-h-[500px] object-cover" 
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="prose prose-lg dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-headings:tracking-tight whitespace-pre-wrap text-foreground">
+                    {formData.data || 'Your post content will appear here...'}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
-                {/* Publishing Tips */}
-                <Collapse in={showTips}>
-                  <Card elevation={2} sx={{ borderRadius: 2 }}>
-                    <CardContent sx={{ pb: 2, px: { xs: 2, sm: 3 } }}>
-                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                        <Typography variant="h6" display="flex" alignItems="center" gap={1}>
-                          <Info sx={{ color: '#1e293b' }} />
-                          Tips
-                        </Typography>
-                        <IconButton size="small" onClick={() => setShowTips(false)}>
-                          <ExpandLess />
-                        </IconButton>
-                      </Box>
-                      
-                      <List dense sx={{ py: 0 }}>
-                        {publishingTips.map((tip, index) => (
-                          <ListItem key={index} sx={{ px: 0, py: 0.5 }}>
-                            <ListItemIcon sx={{ minWidth: 28 }}>
-                              {tip.icon}
-                            </ListItemIcon>
-                            <ListItemText
-                              primary={tip.title}
-                              secondary={tip.description}
-                              primaryTypographyProps={{ variant: 'body2', fontWeight: 600 }}
-                              secondaryTypographyProps={{ variant: 'caption' }}
-                            />
-                          </ListItem>
-                        ))}
-                      </List>
-                    </CardContent>
-                  </Card>
-                </Collapse>
+          {/* Sidebar */}
+          <div className="lg:col-span-4 space-y-6">
+            
+            {/* Settings Card */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-6 line-clamp-2">
+              <h3 className="flex items-center text-lg font-semibold mb-6 pb-4 border-b border-border text-foreground">
+                <Settings className="w-5 h-5 mr-2 text-foreground" /> 
+                Post Settings
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Category <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.categoryId}
+                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                    disabled={categoriesLoading}
+                    className={`w-full px-3 py-2 rounded-lg border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary ${validation.category ? 'border-border' : 'border-red-500'}`}
+                  >
+                    <option value="" disabled>Select a category</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Featured Image URL
+                  </label>
+                  <input
+                    type="url"
+                    name="postImage"
+                    value={formData.postImage}
+                    onChange={handleChange}
+                    placeholder="https://example.com/image.jpg"
+                    className={`w-full px-3 py-2 rounded-lg border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary ${formData.postImage ? 'border-green-500' : 'border-border'}`}
+                  />
+                  {formData.postImage && (
+                    <div className="mt-2 h-24 rounded overflow-hidden border border-border bg-muted">
+                      <img src={formData.postImage} alt="Feature preview" className="w-full h-full object-cover" onError={(e) => e.target.style.display='none'} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
-                {/* Quick Actions */}
-                <Card elevation={2} sx={{ borderRadius: 2 }}>
-                  <CardContent sx={{ pb: 2, px: { xs: 2, sm: 3 } }}>
-                    <Typography variant="h6" mb={2} display="flex" alignItems="center" gap={1}>
-                      <Save sx={{ color: '#1e293b' }} />
-                      Actions
-                    </Typography>
-                    
-                    <Stack spacing={1}>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        fullWidth
-                        onClick={() => setFormData({ title: '', description: '', data: '', categoryId: '', postImage: '' })}
-                        disabled={!isDirty}
-                        sx={{ 
-                          borderColor: '#1e293b',
-                          color: '#1e293b',
-                          '&:hover': { borderColor: '#475569', backgroundColor: '#f1f5f9' }
-                        }}
-                      >
-                        Clear Form
-                      </Button>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </Stack>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
+            {/* Status Card */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
+              <h3 className="flex items-center text-lg font-semibold mb-5 pb-4 border-b border-border text-foreground">
+                <CheckCircle2 className="w-5 h-5 mr-2 text-foreground" /> 
+                Requirements
+              </h3>
+              
+              <ul className="space-y-3">
+                <li className="flex items-center justify-between text-sm p-2 rounded-lg bg-muted/40">
+                  <span className="flex items-center text-foreground font-medium">
+                    {validation.title ? <CheckCircle2 className="w-4 h-4 text-green-500 mr-2" /> : <AlertCircle className="w-4 h-4 text-red-500 mr-2" />}
+                    Title
+                  </span>
+                  <span className="text-xs text-muted-foreground">{validation.title ? 'Completed' : 'Required'}</span>
+                </li>
+                <li className="flex items-center justify-between text-sm p-2 rounded-lg bg-muted/40">
+                  <span className="flex items-center text-foreground font-medium">
+                    {validation.content ? <CheckCircle2 className="w-4 h-4 text-green-500 mr-2" /> : <AlertCircle className="w-4 h-4 text-red-500 mr-2" />}
+                    Content
+                  </span>
+                  <span className="text-xs text-muted-foreground">{validation.content ? 'Completed' : 'Required'}</span>
+                </li>
+                <li className="flex items-center justify-between text-sm p-2 rounded-lg bg-muted/40">
+                  <span className="flex items-center text-foreground font-medium">
+                    {validation.category ? <CheckCircle2 className="w-4 h-4 text-green-500 mr-2" /> : <AlertCircle className="w-4 h-4 text-red-500 mr-2" />}
+                    Category
+                  </span>
+                  <span className="text-xs text-muted-foreground">{validation.category ? 'Selected' : 'Required'}</span>
+                </li>
+                <li className="flex items-center justify-between text-sm p-2 rounded-lg bg-muted/40">
+                  <span className="flex items-center text-foreground font-medium">
+                    {validation.description ? <CheckCircle2 className="w-4 h-4 text-green-500 mr-2" /> : <Info className="w-4 h-4 text-blue-500 mr-2" />}
+                    Description
+                  </span>
+                  <span className="text-xs text-muted-foreground">{validation.description ? 'Added' : 'Optional'}</span>
+                </li>
+                <li className="flex items-center justify-between text-sm p-2 rounded-lg bg-muted/40">
+                  <span className="flex items-center text-foreground font-medium">
+                    {validation.image ? <CheckCircle2 className="w-4 h-4 text-green-500 mr-2" /> : <Info className="w-4 h-4 text-blue-500 mr-2" />}
+                    Featured Image
+                  </span>
+                  <span className="text-xs text-muted-foreground">{validation.image ? 'Added' : 'Optional'}</span>
+                </li>
+              </ul>
+            </div>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          severity={snackbar.severity} 
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </>
+            {/* Tips Card */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+              <button 
+                className="w-full flex items-center justify-between p-6 focus:outline-none hover:bg-muted/50 transition-colors"
+                onClick={() => setShowTips(!showTips)}
+              >
+                <h3 className="flex items-center text-lg font-semibold text-foreground">
+                  <Info className="w-5 h-5 mr-2" /> 
+                  Publishing Tips
+                </h3>
+                {showTips ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
+              </button>
+              
+              {showTips && (
+                <div className="px-6 pb-6 pt-2 animate-in slide-in-from-top-4 duration-200">
+                  <ul className="space-y-4">
+                    {publishingTips.map((tip, index) => (
+                      <li key={index} className="flex gap-3">
+                        <div className="mt-0.5 bg-primary/10 p-1.5 rounded-md h-fit">
+                          {tip.icon}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-foreground">{tip.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{tip.description}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* Snackbar notification */}
+      {snackbar.open && (
+        <div className={`fixed bottom-4 right-4 sm:bottom-8 sm:right-8 z-50 rounded-lg shadow-lg border p-4 max-w-sm w-full animate-in slide-in-from-bottom flex items-start gap-3 ${
+          snackbar.severity === 'error' ? 'bg-destructive/10 border-destructive/20 text-destructive' : 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-500'
+        }`}>
+          {snackbar.severity === 'error' ? (
+            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
+          )}
+          <div className="flex-1">
+            <h4 className="font-semibold text-sm mb-1">{snackbar.severity === 'error' ? 'Error' : 'Success'}</h4>
+            <p className="text-sm opacity-90">{snackbar.message}</p>
+          </div>
+          <button 
+            onClick={() => setSnackbar({ ...snackbar, open: false })}
+            className="p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+          >
+            ×
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 

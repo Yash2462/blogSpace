@@ -1,25 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Paper,
-  Button,
-  Alert,
-  IconButton,
-  Container,
-  Chip,
-  Tooltip,
-} from '@mui/material';
 import api from '../api/axios';
 import CommentsDrawer from '../components/CommentsDrawer';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import CheckIcon from '@mui/icons-material/Check';
+import { Copy, Check, ArrowLeft, Loader2, MessageSquare } from 'lucide-react';
 
 const CodeBlock = ({ language, value }) => {
   const [copied, setCopied] = useState(false);
@@ -31,45 +17,30 @@ const CodeBlock = ({ language, value }) => {
   };
 
   return (
-    <Box sx={{ position: 'relative' }}>
-      <Tooltip title={copied ? "Copied!" : "Copy code"}>
-        <IconButton
+    <div className="relative group mt-6 mb-4 rounded-xl overflow-hidden bg-[#1e1e1e] border border-border">
+      <div className="absolute right-2 top-2 z-10 flex items-center">
+        <button
           onClick={handleCopy}
-          size="small"
-          sx={{
-            position: 'absolute',
-            right: 6,
-            top: 6,
-            bgcolor: 'rgba(255, 255, 255, 0.15)',
-            backdropFilter: 'blur(4px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            padding: '4px',
-            minWidth: '24px',
-            width: '24px',
-            height: '24px',
-            '&:hover': {
-              bgcolor: 'rgba(255, 255, 255, 0.25)',
-              transform: 'scale(1.05)',
-            },
-            transition: 'all 0.2s ease-in-out',
-            zIndex: 1,
-          }}
+          className="p-1.5 rounded-md bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/25 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+          title={copied ? "Copied!" : "Copy code"}
         >
-          {copied ? <CheckIcon sx={{ fontSize: '16px', color: '#4CAF50' }} /> : <ContentCopyIcon sx={{ fontSize: '16px', color: '#fff' }} />}
-        </IconButton>
-      </Tooltip>
+          {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-white" />}
+        </button>
+      </div>
       <SyntaxHighlighter
         language={language}
         style={vscDarkPlus}
         customStyle={{
           margin: 0,
-          borderRadius: '4px',
+          borderRadius: 0,
           padding: '2.5rem 1rem 1rem 1rem',
+          fontSize: '0.9rem',
+          backgroundColor: 'transparent'
         }}
       >
         {value}
       </SyntaxHighlighter>
-    </Box>
+    </div>
   );
 };
 
@@ -118,231 +89,75 @@ const PostDetail = () => {
 
   if (loading) {
     return (
-      <Box 
-        sx={{
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          minHeight: '100vh',
-          pt: { xs: '64px', md: '72px' },
-          pb: 4
-        }}
-      >
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center min-h-[calc(100vh-64px)]">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
     );
   }
 
-  if (error) {
+  if (error || !post) {
     return (
-      <Box 
-        sx={{ 
-          p: 2,
-          pt: { xs: '64px', md: '72px' },
-          pb: 4,
-        }}
-      >
-        <IconButton
+      <div className="relative min-h-[calc(100vh-64px)] p-6">
+        <button
           onClick={() => navigate(-1)}
-          sx={{ 
-            position: 'absolute',
-            top: { xs: '72px', md: '80px' },
-            left: 16,
-            zIndex: 1,
-          }}
+          className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-6"
         >
-          <ArrowBackIcon />
-        </IconButton>
-        <Alert severity="error" sx={{ mt: 6 }}>{error}</Alert>
-      </Box>
-    );
-  }
-
-  if (!post) {
-    return (
-      <Box 
-        sx={{ 
-          p: 2,
-          pt: { xs: '64px', md: '72px' },
-          pb: 4,
-        }}
-      >
-        <IconButton
-          onClick={() => navigate(-1)}
-          sx={{ 
-            position: 'absolute',
-            top: { xs: '72px', md: '80px' },
-            left: 16,
-            zIndex: 1,
-          }}
-        >
-          <ArrowBackIcon />
-        </IconButton>
-        <Alert severity="info" sx={{ mt: 6 }}>Post not found</Alert>
-      </Box>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </button>
+        <div className="max-w-2xl mx-auto mt-12 bg-destructive/10 text-destructive p-4 rounded-xl border border-destructive/20 flex items-center">
+          <span className="font-semibold">{error || 'Post not found'}</span>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Box 
-      sx={{ 
-        pt: { xs: '64px', md: '72px' },
-        pb: 4,
-        bgcolor: 'background.default',
-        minHeight: '100vh',
-      }}
-    >
-      <IconButton
-        onClick={() => navigate(-1)}
-        sx={{ 
-          position: 'fixed',
-          top: { xs: '72px', md: '80px' },
-          left: 16,
-          zIndex: 1,
-          bgcolor: 'background.paper',
-          boxShadow: 1,
-          '&:hover': {
-            bgcolor: 'background.paper',
-            boxShadow: 2,
-          },
-        }}
-      >
-        <ArrowBackIcon />
-      </IconButton>
-
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 2, md: 4 },
-            bgcolor: 'background.paper',
-            maxWidth: '800px',
-            mx: 'auto',
-          }}
+    <div className="relative min-h-[calc(100vh-64px)] bg-background py-8 md:py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Navigation */}
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-8 transition-colors"
         >
-          <Typography variant="h4" component="h1" gutterBottom>
-            {post.title}
-          </Typography>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Posts
+        </button>
 
+        {/* Post Card */}
+        <div className="bg-card border border-border shadow-sm rounded-3xl overflow-hidden p-6 sm:p-10 md:p-12">
+          
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight leading-tight mb-6">
+              {post.title}
+            </h1>
+            
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                {post.category?.name || 'Uncategorized'}
+              </span>
+              <span className="flex items-center">
+                By <strong className="ml-1 text-foreground">{post.user?.username || 'Unknown'}</strong>
+              </span>
+            </div>
+          </div>
+
+          {/* Featured Image */}
           {post.postImage && (
-            <Box
-              mb={3}
-              sx={{
-                borderRadius: 1,
-                overflow: 'hidden',
-                boxShadow: 1,
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                bgcolor: 'grey.100',
-              }}
-            >
+            <div className="mb-10 rounded-2xl overflow-hidden bg-muted border border-border/50 max-h-[500px] flex items-center justify-center">
               <img
                 src={post.postImage}
                 alt={post.title}
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  maxHeight: '400px',
-                  objectFit: 'contain',
-                }}
+                className="w-full h-auto object-cover"
+                loading="lazy"
               />
-            </Box>
+            </div>
           )}
 
-          <Box sx={{ mb: 3 }}>
-            <Chip
-              label={post.category?.name || 'Uncategorized'}
-              color="primary"
-              size="small"
-            />
-          </Box>
-
-          <Box sx={{ 
-            '& img': { maxWidth: '100%', height: 'auto' },
-            '& h1, & h2, & h3, & h4, & h5, & h6': {
-              mt: 3,
-              mb: 2,
-              fontWeight: 600,
-              color: 'text.primary',
-              textAlign: 'left',
-              width: '100%',
-              display: 'block',
-              textAlignLast: 'left',
-            },
-            '& h1': { fontSize: '2rem' },
-            '& h2': { fontSize: '1.75rem' },
-            '& h3': { fontSize: '1.5rem' },
-            '& h4': { fontSize: '1.25rem' },
-            '& h5': { fontSize: '1.1rem' },
-            '& h6': { fontSize: '1rem' },
-            '& p': {
-              mb: 2,
-              lineHeight: 1.6,
-              maxWidth: '100%',
-              overflowWrap: 'break-word',
-              wordWrap: 'break-word',
-              hyphens: 'auto',
-            },
-            '& ul, & ol': {
-              mb: 2,
-              pl: 3,
-              maxWidth: '100%',
-            },
-            '& li': {
-              mb: 1,
-              maxWidth: '100%',
-              overflowWrap: 'break-word',
-              wordWrap: 'break-word',
-            },
-            '& blockquote': {
-              borderLeft: '4px solid',
-              borderColor: 'primary.main',
-              pl: 2,
-              py: 1,
-              my: 2,
-              backgroundColor: 'grey.50',
-              fontStyle: 'italic',
-              maxWidth: '100%',
-              overflowWrap: 'break-word',
-              wordWrap: 'break-word',
-            },
-            '& table': {
-              borderCollapse: 'collapse',
-              width: '100%',
-              my: 2,
-              maxWidth: '100%',
-              overflowX: 'auto',
-              display: 'block',
-            },
-            '& th, & td': {
-              border: '1px solid',
-              borderColor: 'divider',
-              p: 1,
-              minWidth: '100px',
-            },
-            '& th': {
-              backgroundColor: 'grey.100',
-              fontWeight: 600,
-            },
-            '& a': {
-              color: 'primary.main',
-              textDecoration: 'none',
-              wordBreak: 'break-word',
-              '&:hover': {
-                textDecoration: 'underline',
-              },
-            },
-            '& pre': {
-              maxWidth: '100%',
-              overflowX: 'auto',
-            },
-            '& code': {
-              maxWidth: '100%',
-              overflowX: 'auto',
-            },
-          }}>
+          {/* Post Content */}
+          <div className="prose prose-lg dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary hover:prose-a:text-primary/80 prose-img:rounded-xl">
             <ReactMarkdown
               components={{
                 code({node, inline, className, children, ...props}) {
@@ -354,44 +169,40 @@ const PostDetail = () => {
                       {...props}
                     />
                   ) : (
-                    <code className={className} {...props}>
+                    <code className="bg-muted px-1.5 py-0.5 rounded-md text-sm font-mono" {...props}>
                       {children}
                     </code>
                   );
                 }
               }}
             >
-              {post.data}
+              {post.data || post.content}
             </ReactMarkdown>
-          </Box>
+          </div>
 
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 3 }}>
-            By {post.user?.username || 'Unknown'} in {post.category?.name || 'Uncategorized'}
-          </Typography>
-
-          <Box mt={3}>
-            <Button 
-              variant="contained" 
+          {/* Footer Actions */}
+          <div className="mt-12 pt-8 border-t border-border flex justify-between items-center">
+            <div className="text-sm text-muted-foreground">
+              Thanks for reading!
+            </div>
+            <button
               onClick={() => setCommentsOpen(true)}
-              sx={{
-                transition: 'transform 0.2s',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                },
-              }}
+              className="inline-flex items-center px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
             >
+              <MessageSquare className="w-5 h-5 mr-2" />
               View Comments
-            </Button>
-          </Box>
-        </Paper>
-      </Container>
+            </button>
+          </div>
+
+        </div>
+      </div>
 
       <CommentsDrawer
         open={commentsOpen}
         onClose={() => setCommentsOpen(false)}
         postId={postId}
       />
-    </Box>
+    </div>
   );
 };
 

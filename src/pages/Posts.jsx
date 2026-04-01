@@ -1,17 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  CircularProgress,
-  Container,
-  Alert,
-  Stack,
-  GlobalStyles,
-} from '@mui/material';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import PostsGrid from '../components/PostsGrid';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 const Posts = () => {
   const { user, loadingUser } = useAuth();
@@ -21,7 +12,6 @@ const Posts = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  // Fetch initial categories and posts
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
@@ -50,7 +40,6 @@ const Posts = () => {
     fetchInitialData();
   }, []);
 
-  // Fetch posts when category changes
   useEffect(() => {
     const fetchPostsByCategory = async () => {
       if (selectedCategory === 'All') {
@@ -72,7 +61,6 @@ const Posts = () => {
         return;
       }
 
-      // Specific category
       const selected = categories.find((c) => c.name === selectedCategory);
       if (!selected || selected.id === 'All') return;
 
@@ -94,7 +82,7 @@ const Posts = () => {
     };
 
     if (!loading) fetchPostsByCategory();
-  }, [selectedCategory]);
+  }, [selectedCategory, categories]);
 
   const handleCategoryClick = (categoryName) => {
     if (categoryName !== selectedCategory) {
@@ -103,102 +91,58 @@ const Posts = () => {
   };
 
   return (
-    <>
-      {/* Global custom scroll styles */}
-      <GlobalStyles
-        styles={{
-          '*::-webkit-scrollbar': {
-            width: '8px',
-          },
-          '*::-webkit-scrollbar-track': {
-            background: '#f1f1f1',
-          },
-          '*::-webkit-scrollbar-thumb': {
-            background: '#888',
-            borderRadius: '4px',
-          },
-          '*::-webkit-scrollbar-thumb:hover': {
-            background: '#555',
-          },
-        }}
-      />
-
-      {/* Scrollable page content */}
-      <Box
-        sx={{
-          height: 'calc(100vh - 96px)',
-          overflowY: 'auto',
-          pr: 1,
-        }}
-      >
-        <Container
-          maxWidth="lg"
-          sx={{
-            mt: 2,
-            pb: 5,
-          }}
-        >
-          {alert && (
-            <Alert
-              severity={alert.type}
-              onClose={() => setAlert(null)}
-              sx={{ mb: 2 }}
+    <div className="flex flex-col h-full overflow-y-auto">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        {alert && (
+          <div className="mb-6 p-4 rounded-lg flex items-center gap-2 bg-destructive/10 text-destructive">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <span>{alert.message}</span>
+            <button 
+              className="ml-auto opacity-70 hover:opacity-100" 
+              onClick={() => setAlert(null)}
             >
-              {alert.message}
-            </Alert>
-          )}
+              ×
+            </button>
+          </div>
+        )}
 
-          <Box sx={{ textAlign: 'center', my: 2 }}>
-            <Typography variant="h2" fontWeight="bold" gutterBottom>
-              Welcome to BlogSpace
-            </Typography>
-            <Typography
-              variant="h6"
-              color="text.secondary"
-              sx={{ maxWidth: '700px', mx: 'auto' }}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
+            Welcome to BlogSpace
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Discover amazing stories, share your thoughts, and connect with a
+            community of passionate writers and readers.
+          </p>
+        </div>
+
+        {/* Category filters */}
+        <div className="flex flex-wrap justify-center gap-2 mb-10">
+          {categories.map((category) => (
+            <button
+              key={category.id || category.name}
+              onClick={() => handleCategoryClick(category.name)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                selectedCategory === category.name
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-card border border-border text-foreground hover:bg-accent hover:text-accent-foreground'
+              }`}
             >
-              Discover amazing stories, share your thoughts, and connect with a
-              community of passionate writers and readers.
-            </Typography>
-          </Box>
+              {category.name}
+            </button>
+          ))}
+        </div>
 
-          {/* Category filters */}
-          <Stack
-            direction="row"
-            justifyContent="center"
-            spacing={2}
-            sx={{ mb: 6, flexWrap: 'wrap' }}
-          >
-            {categories.map((category) => (
-              <Button
-                key={category.id || category.name}
-                variant={
-                  selectedCategory === category.name ? 'contained' : 'outlined'
-                }
-                onClick={() => handleCategoryClick(category.name)}
-                sx={{
-                  borderRadius: 20,
-                  textTransform: 'none',
-                  fontWeight: 'medium',
-                  my: 0.5,
-                }}
-              >
-                {category.name}
-              </Button>
-            ))}
-          </Stack>
-
-          {/* Post list or loader */}
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <PostsGrid posts={posts} />
-          )}
-        </Container>
-      </Box>
-    </>
+        {/* Post list or loader */}
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          </div>
+        ) : (
+          <PostsGrid posts={posts} />
+        )}
+      </div>
+    </div>
   );
 };
 

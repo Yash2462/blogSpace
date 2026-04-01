@@ -1,26 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Card,
-  CardContent,
-  CardMedia,
-  Typography,
-  IconButton,
-  Box,
-  Grid,
-  Container,
-  Chip,
-  Tooltip,
-} from '@mui/material';
-import {
-  Favorite,
-  FavoriteBorder,
-  ChatBubbleOutline,
-} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow, isValid } from 'date-fns';
 import PropTypes from 'prop-types';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import { Heart, MessageSquare } from 'lucide-react';
 
 const PostsGrid = ({ posts = [] }) => {
   const navigate = useNavigate();
@@ -109,163 +93,89 @@ const PostsGrid = ({ posts = [] }) => {
 
   if (!posts || posts.length === 0) {
     return (
-      <Container maxWidth="lg">
-        <Box sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="h6" color="text.secondary">
-            No posts available
-          </Typography>
-        </Box>
-      </Container>
+      <div className="w-full py-12 text-center text-muted-foreground">
+        No posts available
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="lg">
-      <Box
-        sx={{
-          width: '100%',
-          overflow: 'auto',
-          '&::-webkit-scrollbar': { display: 'none' },
-          '-ms-overflow-style': 'none',
-          'scrollbar-width': 'none',
-        }}
-      >
-        <Grid container spacing={4} sx={{ p: 2 }}>
-          {posts.map((post) => {
-            const postId = post._id || post.id || post.postId;
-            if (!postId) return null;
-            const isLiked = likedPosts.has(postId);
-            const stats = postStats[postId] || { likes: 0, comments: 0 };
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
+      {posts.map((post) => {
+        const postId = post._id || post.id || post.postId;
+        if (!postId) return null;
+        const isLiked = likedPosts.has(postId);
+        const stats = postStats[postId] || { likes: 0, comments: 0 };
 
-            return (
-              <Grid item key={postId} xs={12} sm={6} md={4} lg={3}>
-                <Card
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    maxWidth: 320,
-                    mx: 'auto',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: 4,
-                    },
-                  }}
-                >
-                  <Box
-                    onClick={() => handlePostClick(post)}
-                    sx={{
-                      cursor: 'pointer',
-                      flexGrow: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                    }}
+        return (
+          <div
+            key={postId}
+            onClick={() => handlePostClick(post)}
+            className="group flex flex-col bg-card border border-border rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 h-full max-w-[320px] mx-auto w-full"
+          >
+            {(post.postImage || post.imageUrl) && (
+              <div className="w-full h-48 overflow-hidden bg-muted">
+                <img
+                  src={post.postImage || post.imageUrl}
+                  alt={post.title || 'Post image'}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+            )}
+            
+            <div className="flex flex-col flex-grow p-5">
+              <div className="flex justify-between items-start mb-3">
+                <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">
+                  {post.category?.name || 'Uncategorized'}
+                </span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                  {formatDate(post.createdAt || post.updatedAt)}
+                </span>
+              </div>
+              
+              <h2 className="text-lg font-bold text-foreground mb-2 line-clamp-2 leading-tight">
+                {post.title || 'Untitled Post'}
+              </h2>
+              
+              <p className="text-sm text-muted-foreground line-clamp-3 mb-4 flex-grow">
+                {post.data || post.content || 'No content available'}
+              </p>
+              
+              <div className="flex items-center justify-between pt-4 border-t border-border mt-auto">
+                <span className="text-xs font-medium text-foreground w-24 truncate">
+                  By {post.user?.username || 'Anonymous'}
+                </span>
+                
+                <div className="flex items-center space-x-3 text-muted-foreground">
+                  <button
+                    onClick={(e) => handleLikeClick(e, postId)}
+                    className="flex items-center space-x-1 hover:text-red-500 transition-colors group/btn"
+                    title={isLiked ? 'Unlike' : 'Like'}
                   >
-                    {(post.postImage || post.imageUrl) && (
-                      <CardMedia
-                        component="img"
-                        height="200"
-                        image={post.postImage || post.imageUrl}
-                        alt={post.title || 'Post image'}
-                        sx={{ objectFit: 'cover' }}
-                      />
-                    )}
-                    <CardContent sx={{ flexGrow: 1, p: 2, display: 'flex', flexDirection: 'column' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                        <Chip
-                          label={post.category?.name || 'Uncategorized'}
-                          size="small"
-                          color="primary"
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {formatDate(post.createdAt || post.updatedAt)}
-                        </Typography>
-                      </Box>
-                      <Typography
-                        gutterBottom
-                        variant="h6"
-                        component="h2"
-                        sx={{
-                          fontWeight: 600,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          minHeight: '3rem',
-                        }}
-                      >
-                        {post.title || 'Untitled Post'}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: 'vertical',
-                          flexGrow: 1,
-                          mb: 2,
-                        }}
-                      >
-                        {post.data || post.content || 'No content available'}
-                      </Typography>
-                      
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          mt: 'auto',
-                          pt: 2,
-                          borderTop: 1,
-                          borderColor: 'divider',
-                        }}
-                      >
-                        <Typography variant="caption" color="text.secondary">
-                          By {post.user?.username || 'Anonymous'}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Tooltip title={isLiked ? 'Unlike' : 'Like'}>
-                            <IconButton
-                              size="small"
-                              onClick={(e) => handleLikeClick(e, postId)}
-                            >
-                              {isLiked ? (
-                                <Favorite sx={{ color: 'red', fontSize: '1.2rem' }} />
-                              ) : (
-                                <FavoriteBorder sx={{ fontSize: '1.2rem' }} />
-                              )}
-                            </IconButton>
-                          </Tooltip>
-                          <Typography variant="body2" sx={{ mr: 1.5 }}>{stats.likes}</Typography>
-                          
-                          <Tooltip title="View Comments">
-                            <IconButton
-                              size="small"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handlePostClick(post);
-                              }}
-                            >
-                              <ChatBubbleOutline sx={{ fontSize: '1.2rem' }} color="action" />
-                            </IconButton>
-                          </Tooltip>
-                          <Typography variant="body2">{stats.comments}</Typography>
-                        </Box>
-                      </Box>
-                    </CardContent>
-                  </Box>
-                </Card>
-              </Grid>
-            );
-          })}
-        </Grid>
-      </Box>
-    </Container>
+                    <Heart 
+                      className={`w-4 h-4 transition-transform group-hover/btn:scale-110 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} 
+                    />
+                    <span className="text-xs">{stats.likes}</span>
+                  </button>
+                  
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePostClick(post);
+                    }}
+                    className="flex items-center space-x-1 hover:text-primary transition-colors group/btn"
+                    title="View Comments"
+                  >
+                    <MessageSquare className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
+                    <span className="text-xs">{stats.comments}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 };
 

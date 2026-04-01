@@ -1,31 +1,9 @@
 import { useState, useEffect } from 'react';
-import {
-  Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  CircularProgress,
-  Tabs,
-  Tab,
-  Paper,
-  Typography,
-  Alert,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
 import MDEditor from '@uiw/react-md-editor';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import CheckIcon from '@mui/icons-material/Check';
+import { Copy, Check, X, Loader2 } from 'lucide-react';
 import api from '../api/axios';
 
 const CodeBlock = ({ language, value }) => {
@@ -38,45 +16,29 @@ const CodeBlock = ({ language, value }) => {
   };
 
   return (
-    <Box sx={{ position: 'relative' }}>
-      <Tooltip title={copied ? "Copied!" : "Copy code"}>
-        <IconButton
+    <div className="relative group mt-4 mb-2">
+      <div className="absolute right-2 top-2 z-10 flex items-center">
+        <button
           onClick={handleCopy}
-          size="small"
-          sx={{
-            position: 'absolute',
-            right: 6,
-            top: 6,
-            bgcolor: 'rgba(255, 255, 255, 0.15)',
-            backdropFilter: 'blur(4px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            padding: '4px',
-            minWidth: '24px',
-            width: '24px',
-            height: '24px',
-            '&:hover': {
-              bgcolor: 'rgba(255, 255, 255, 0.25)',
-              transform: 'scale(1.05)',
-            },
-            transition: 'all 0.2s ease-in-out',
-            zIndex: 1,
-          }}
+          className="p-1.5 rounded-md bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/25 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+          title={copied ? "Copied!" : "Copy code"}
         >
-          {copied ? <CheckIcon sx={{ fontSize: '16px', color: '#4CAF50' }} /> : <ContentCopyIcon sx={{ fontSize: '16px', color: '#fff' }} />}
-        </IconButton>
-      </Tooltip>
+          {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4 text-white" />}
+        </button>
+      </div>
       <SyntaxHighlighter
         language={language}
         style={vscDarkPlus}
         customStyle={{
           margin: 0,
-          borderRadius: '4px',
+          borderRadius: '0.5rem',
           padding: '2.5rem 1rem 1rem 1rem',
+          fontSize: '0.9rem',
         }}
       >
         {value}
       </SyntaxHighlighter>
-    </Box>
+    </div>
   );
 };
 
@@ -85,7 +47,7 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
   const [content, setContent] = useState(post?.data || '');
   const [categoryId, setCategoryId] = useState(post?.category?.id || '');
   const [postImage, setPostImage] = useState(post?.postImage || '');
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(0); // 0 = Write, 1 = Preview
   const [error, setError] = useState('');
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
@@ -103,7 +65,6 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
       setCategoryId(post.category?.id || '');
       setPostImage(post.postImage || '');
     } else {
-      // Reset form when creating new post
       setTitle('');
       setContent('');
       setCategoryId('');
@@ -148,259 +109,214 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
 
   const selectedCategory = categories.find(cat => cat.id === categoryId);
 
+  if (!open) return null;
+
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: {
-          minHeight: '80vh',
-          maxHeight: '90vh',
-        }
-      }}
-    >
-      <DialogTitle>
-        {post ? 'Edit Post' : 'Create New Post'}
-      </DialogTitle>
-      <DialogContent>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-        <form onSubmit={handleSubmit}>
-          <TextField
-            label="Title"
-            fullWidth
-            margin="normal"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            error={!title && error}
-            helperText={!title && error ? 'Title is required' : ''}
-          />
-          <TextField
-            label="Image URL"
-            fullWidth
-            margin="normal"
-            value={postImage}
-            onChange={(e) => setPostImage(e.target.value)}
-            placeholder="https://example.com/image.jpg"
-          />
-          <FormControl fullWidth margin="normal" required error={!categoryId && error}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={categoryId}
-              label="Category"
-              onChange={(e) => setCategoryId(e.target.value)}
-            >
-              {categoriesLoading ? (
-                <MenuItem disabled>
-                  <CircularProgress size={20} sx={{ mr: 1 }} />
-                  Loading categories...
-                </MenuItem>
-              ) : categories.length === 0 ? (
-                <MenuItem value="" disabled>
-                  No categories available
-                </MenuItem>
-              ) : (
-                categories.map((cat) => (
-                  <MenuItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-            {!categoryId && error && (
-              <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 1 }}>
-                Please select a category
-              </Box>
-            )}
-          </FormControl>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div className="bg-card w-full max-w-4xl rounded-xl shadow-lg border border-border flex flex-col max-h-[95vh] overflow-hidden">
+        
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-border">
+          <h2 className="text-xl font-bold text-foreground">
+            {post ? 'Edit Post' : 'Create New Post'}
+          </h2>
+          <button 
+            onClick={onClose} 
+            className="p-2 -mr-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-full transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          <Box sx={{ mt: 2 }}>
-            <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
-              <Tab label="Write" />
-              <Tab label="Preview" />
-            </Tabs>
-
-            <Box sx={{ mt: 2, height: '400px', overflow: 'auto' }}>
-              {activeTab === 0 ? (
-                <MDEditor
-                  value={content}
-                  onChange={setContent}
-                  preview="edit"
-                  height={400}
-                />
-              ) : (
-                <Paper sx={{ p: 3, maxWidth: '800px', mx: 'auto' }}>
-                  <Typography variant="h4" gutterBottom>
-                    {title || 'Untitled Post'}
-                  </Typography>
-                  
-                  {postImage && (
-                    <Box 
-                      mb={3}
-                      sx={{
-                        borderRadius: 1,
-                        overflow: 'hidden',
-                        boxShadow: 1,
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        bgcolor: 'grey.100',
-                      }}
-                    >
-                      <img 
-                        src={postImage} 
-                        alt={title} 
-                        style={{ 
-                          width: '100%',
-                          height: 'auto',
-                          maxHeight: '300px',
-                          objectFit: 'contain',
-                        }} 
-                      />
-                    </Box>
-                  )}
-
-                  <Box sx={{ 
-                    '& img': { maxWidth: '100%', height: 'auto' },
-                    '& h1, & h2, & h3, & h4, & h5, & h6': {
-                      mt: 3,
-                      mb: 2,
-                      fontWeight: 600,
-                      color: 'text.primary',
-                      textAlign: 'left',
-                      width: '100%',
-                      display: 'block',
-                      textAlignLast: 'left',
-                    },
-                    '& h1': { fontSize: '2rem' },
-                    '& h2': { fontSize: '1.75rem' },
-                    '& h3': { fontSize: '1.5rem' },
-                    '& h4': { fontSize: '1.25rem' },
-                    '& h5': { fontSize: '1.1rem' },
-                    '& h6': { fontSize: '1rem' },
-                    '& p': {
-                      mb: 2,
-                      lineHeight: 1.6,
-                      maxWidth: '100%',
-                      overflowWrap: 'break-word',
-                      wordWrap: 'break-word',
-                      hyphens: 'auto',
-                    },
-                    '& ul, & ol': {
-                      mb: 2,
-                      pl: 3,
-                      maxWidth: '100%',
-                    },
-                    '& li': {
-                      mb: 1,
-                      maxWidth: '100%',
-                      overflowWrap: 'break-word',
-                      wordWrap: 'break-word',
-                    },
-                    '& blockquote': {
-                      borderLeft: '4px solid',
-                      borderColor: 'primary.main',
-                      pl: 2,
-                      py: 1,
-                      my: 2,
-                      backgroundColor: 'grey.50',
-                      fontStyle: 'italic',
-                      maxWidth: '100%',
-                      overflowWrap: 'break-word',
-                      wordWrap: 'break-word',
-                    },
-                    '& table': {
-                      borderCollapse: 'collapse',
-                      width: '100%',
-                      my: 2,
-                      maxWidth: '100%',
-                      overflowX: 'auto',
-                      display: 'block',
-                    },
-                    '& th, & td': {
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      p: 1,
-                      minWidth: '100px',
-                    },
-                    '& th': {
-                      backgroundColor: 'grey.100',
-                      fontWeight: 600,
-                    },
-                    '& a': {
-                      color: 'primary.main',
-                      textDecoration: 'none',
-                      wordBreak: 'break-word',
-                      '&:hover': {
-                        textDecoration: 'underline',
-                      },
-                    },
-                    '& pre': {
-                      maxWidth: '100%',
-                      overflowX: 'auto',
-                    },
-                    '& code': {
-                      maxWidth: '100%',
-                      overflowX: 'auto',
-                    },
-                  }}>
-                    <ReactMarkdown
-                      components={{
-                        code({node, inline, className, children, ...props}) {
-                          const match = /language-(\w+)/.exec(className || '');
-                          return !inline && match ? (
-                            <CodeBlock
-                              language={match[1]}
-                              value={String(children).replace(/\n$/, '')}
-                              {...props}
-                            />
-                          ) : (
-                            <code className={className} {...props}>
-                              {children}
-                            </code>
-                          );
-                        }
-                      }}
-                    >
-                      {content}
-                    </ReactMarkdown>
-                  </Box>
-
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 3 }}>
-                    {selectedCategory ? `Category: ${selectedCategory.name}` : 'No category selected'}
-                  </Typography>
-                </Paper>
-              )}
-            </Box>
-          </Box>
-        </form>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button 
-          onClick={handleSubmit} 
-          variant="contained" 
-          disabled={loading || !title || !content || !categoryId}
-          type="submit"
-        >
-          {loading ? (
-            <CircularProgress size={20} color="inherit" />
-          ) : post ? (
-            'Update'
-          ) : (
-            'Create'
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          {error && (
+            <div className="mb-6 p-4 rounded-lg bg-destructive/10 text-destructive text-sm font-medium border border-destructive/20">
+              {error}
+            </div>
           )}
-        </Button>
-      </DialogActions>
-    </Dialog>
+          
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground block">
+                Title <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className={`w-full px-4 py-2 rounded-md border bg-background/50 focus:bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none ${
+                  !title && error ? 'border-red-500' : 'border-input'
+                }`}
+                placeholder="Enter title..."
+              />
+              {!title && error && (
+                <p className="text-xs text-red-500 mt-1">Title is required</p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground block">
+                Image URL
+              </label>
+              <input
+                type="url"
+                value={postImage}
+                onChange={(e) => setPostImage(e.target.value)}
+                className="w-full px-4 py-2 rounded-md border border-input bg-background/50 focus:bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground block">
+                Category <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                disabled={categoriesLoading}
+                className={`w-full px-4 py-2 rounded-md border bg-background/50 focus:bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none ${
+                  !categoryId && error ? 'border-red-500' : 'border-input'
+                }`}
+              >
+                {categoriesLoading ? (
+                  <option disabled>Loading categories...</option>
+                ) : categories.length === 0 ? (
+                  <option value="" disabled>No categories available</option>
+                ) : (
+                  <>
+                    <option value="" disabled>Select a category</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </>
+                )}
+              </select>
+              {!categoryId && error && (
+                <p className="text-xs text-red-500 mt-1">Please select a category</p>
+              )}
+            </div>
+
+            {/* Markdown Tabs */}
+            <div className="mt-6">
+              <div className="flex border-b border-border">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(0)}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 0
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                  }`}
+                >
+                  Write
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(1)}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 1
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                  }`}
+                >
+                  Preview
+                </button>
+              </div>
+
+              <div className="mt-4 min-h-[400px]">
+                {activeTab === 0 ? (
+                  <div className="border border-input rounded-md overflow-hidden bg-background">
+                    <MDEditor
+                      value={content}
+                      onChange={setContent}
+                      preview="edit"
+                      height={400}
+                      className="!bg-transparent"
+                    />
+                  </div>
+                ) : (
+                  <div className="p-6 bg-background rounded-lg border border-border min-h-[400px]">
+                    <h1 className="text-3xl font-bold text-foreground mb-6">
+                      {title || 'Untitled Post'}
+                    </h1>
+                    
+                    {postImage && (
+                      <div className="mb-6 rounded-lg overflow-hidden bg-muted border border-border/50 max-h-[300px] flex items-center justify-center">
+                        <img 
+                          src={postImage} 
+                          alt={title} 
+                          className="w-full h-full object-contain" 
+                        />
+                      </div>
+                    )}
+
+                    <div className="prose prose-lg dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-headings:tracking-tight whitespace-pre-wrap">
+                      <ReactMarkdown
+                        components={{
+                          code({node, inline, className, children, ...props}) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            return !inline && match ? (
+                              <CodeBlock
+                                language={match[1]}
+                                value={String(children).replace(/\n$/, '')}
+                                {...props}
+                              />
+                            ) : (
+                              <code className={`${className} bg-muted px-1.5 py-0.5 rounded-md font-mono text-sm`} {...props}>
+                                {children}
+                              </code>
+                            );
+                          }
+                        }}
+                      >
+                        {content || 'Nothing to preview'}
+                      </ReactMarkdown>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground mt-8 pt-4 border-t border-border">
+                      {selectedCategory ? `Category: ${selectedCategory.name}` : 'No category selected'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* hidden submit for enter key */}
+            <button type="submit" className="hidden" />
+          </form>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-4 sm:p-6 border-t border-border bg-card flex justify-end gap-3 mt-auto">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-md font-medium text-foreground bg-background border border-input hover:bg-accent transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={loading || !title || !content || !categoryId}
+            className="flex items-center px-4 py-2 rounded-md font-medium text-primary-foreground bg-primary hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          >
+            {loading ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {post ? 'Updating...' : 'Creating...'}</>
+            ) : post ? (
+              'Update Post'
+            ) : (
+              'Create Post'
+            )}
+          </button>
+        </div>
+
+      </div>
+    </div>
   );
 };
 
-export default PostForm; 
+export default PostForm;
