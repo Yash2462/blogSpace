@@ -1,43 +1,36 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Posts from './pages/Posts';
-import Comments from './pages/Comments';
 import PostDetail from './pages/PostDetail';
 import CreatePost from './pages/CreatePost';
 import Profile from './pages/Profile';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './App.css';
 import { jwtDecode } from 'jwt-decode';
-import { Box } from '@mui/material';
 
 // Layout wrapper component
 function PageWrapper({ children }) {
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
-      <Box sx={{
-        pt: { xs: '64px', md: '72px' }, // Match navbar height
-        display: 'flex',
-        flex: 1,
-        flexDirection: 'column',
-      }}>
+    <div className="min-h-screen flex flex-col">
+      <div className="pt-16 md:pt-[72px] flex-1 flex flex-col w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {children}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }
 
 function ProtectedRoute({ children }) {
   const { user, loadingUser } = useAuth();
   if (loadingUser) {
-    // You can show a spinner or nothing while checking token
-    return <div style={{textAlign: 'center', marginTop: '20vh'}}><span>Loading...</span></div>;
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
   }
   if (!user) return <Navigate to="/login" />;
   return <PageWrapper>{children}</PageWrapper>;
@@ -47,24 +40,45 @@ function AppRoutes() {
   const location = useLocation();
   const hideNavbar = location.pathname === '/login' || location.pathname === '/signup';
   return (
-    <>
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 antialiased">
       {!hideNavbar && <Navbar />}
       <Routes>
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/posts/:postId" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
-        <Route path="/comments" element={<ProtectedRoute><Comments /></ProtectedRoute>} />
         <Route path="/create-post" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </>
+    </div>
   );
 }
 
 function App() {
+  // Check system preference or localStorage for initial theme
+  const getInitialTheme = () => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const storedPrefs = window.localStorage.getItem('color-theme');
+      if (typeof storedPrefs === 'string') {
+        return storedPrefs;
+      }
+      const userMedia = window.matchMedia('(prefers-color-scheme: dark)');
+      if (userMedia.matches) {
+        return 'dark';
+      }
+    }
+    return 'light';
+  };
+
+  // Add the class to html element immediately on load to prevent flash
+  if (typeof window !== 'undefined') {
+    const theme = getInitialTheme();
+    if (theme === 'dark') document.documentElement.classList.add('dark');
+  }
+
   return (
     <AuthProvider>
       <Router>
