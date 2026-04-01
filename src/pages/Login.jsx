@@ -1,20 +1,9 @@
 import { useState } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import {
-  TextField,
-  Button,
-  Box,
-  Typography,
-  Paper,
-  Alert,
-  CircularProgress,
-  Grid,
-  CssBaseline,
-  Link,
-  Fade,
-} from '@mui/material';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import { motion } from 'framer-motion';
+import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -51,129 +40,91 @@ const Login = () => {
   };
 
   return (
-    <Grid
-      container
-      component="main"
-      sx={{
-        height: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#f0f4ff',
-        minHeight: '100vh',
-      }}
-    >
-      <CssBaseline />
-      <Fade in={true} timeout={400}>
-        <Grid
-          item
-          xs={12}
-          sm={8}
-          md={5}
-          lg={4}
-          component={Paper}
-          elevation={6}
-          sx={{
-            p: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            borderRadius: 2,
-            transition: 'all 0.2s ease-in-out',
-            '&:hover': {
-              transform: 'translateY(-1px)',
-              boxShadow: 8,
-            },
-          }}
-        >
-          <Typography component="h1" variant="h5" fontWeight="bold" sx={{ mb: 1 }}>
+    <div className="min-h-screen flex items-center justify-center bg-muted/30 py-12 px-4 sm:px-6 lg:px-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-md w-full space-y-8 bg-card p-8 rounded-2xl border border-border shadow-sm"
+      >
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-foreground tracking-tight">
             Welcome back
-          </Typography>
-          <Typography component="p" color="text.secondary" sx={{ mb: 3 }}>
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
             Enter your credentials to access your account
-          </Typography>
+          </p>
+        </div>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2, width: '100%' }}>
-              {error}
-            </Alert>
-          )}
-          {success && (
-            <Alert severity="success" sx={{ mb: 2, width: '100%' }}>
-              {success}
-            </Alert>
-          )}
+        {error && (
+          <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
+            <AlertCircle className="w-4 h-4" />
+            <span>{error}</span>
+          </div>
+        )}
+        
+        {success && (
+          <div className="flex items-center gap-2 p-3 text-sm text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-500/10 rounded-lg">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>{success}</span>
+          </div>
+        )}
 
-          <Box
-            component="form"
-            onSubmit={handleLogin}
-            sx={{ mt: 1, width: '100%' }}
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-1">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="appearance-none relative block w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors sm:text-sm"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-1">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="appearance-none relative block w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors sm:text-sm"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Typography variant="subtitle1" fontWeight="bold" component="label" htmlFor="email" sx={{ display: 'block', mb: 1 , textAlign:'left' }}>Email</Typography>
-            <TextField
-              required
-              fullWidth
-              id="email"
-              placeholder="Enter your email"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            <Typography variant="subtitle1" fontWeight="bold" component="label" htmlFor="password" sx={{ display: 'block', mb: 1 , textAlign:'left' }}>Password</Typography>
-            <TextField
-              required
-              fullWidth
-              name="password"
-              placeholder="Enter your password"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{
-                mt: 3,
-                mb: 2,
-                backgroundColor: '#1e293b',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  backgroundColor: '#334155',
-                },
-              }}
-              disabled={loading}
-            >
-              {loading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                'Sign in'
-              )}
-            </Button>
-            <Typography align="center">
-              Don't have an account?{' '}
-              <Link 
-                component={RouterLink} 
-                to="/signup"
-                sx={{
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    color: '#1e293b',
-                  },
-                }}
-              >
-                Sign up
-              </Link>
-            </Typography>
-          </Box>
-        </Grid>
-      </Fade>
-    </Grid>
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign in'}
+          </button>
+        </form>
+
+        <div className="text-center mt-6">
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{' '}
+            <Link to="/signup" className="font-medium text-primary hover:text-primary/80 transition-colors">
+              Sign up
+            </Link>
+          </p>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 

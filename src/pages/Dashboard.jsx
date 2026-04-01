@@ -1,14 +1,9 @@
-import { useEffect, useState, useRef } from 'react';
-import {
-  Box, Typography, Grid, Card, CardContent, CardMedia,
-  TextField, MenuItem, Select, InputLabel, FormControl, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText, Alert, Paper
-} from '@mui/material';
+import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import CloseIcon from '@mui/icons-material/Close';
 import PostsGrid from '../components/PostsGrid';
+import { Loader2, X } from 'lucide-react';
 
-// CommentsDialog component
 export const CommentsDialog = ({ open, onClose, postId }) => {
   const { user } = useAuth();
   const [comments, setComments] = useState([]);
@@ -23,7 +18,6 @@ export const CommentsDialog = ({ open, onClose, postId }) => {
     setError('');
     api.get(`/api/comments/post/${postId}`)
       .then(res => {
-        console.log('Fetched comments:', res.data);
         setComments(Array.isArray(res.data) ? res.data : res.data.comments || res.data.data || []);
       })
       .catch(() => setError('Failed to load comments.'))
@@ -36,9 +30,7 @@ export const CommentsDialog = ({ open, onClose, postId }) => {
     setError('');
     try {
       await api.post(`/api/comments/user/${user.id}/post/${postId}/createComment`, { comment: newComment });
-      // Refresh comments
       const res = await api.get(`/api/comments/post/${postId}`);
-      console.log('Fetched comments:', res.data);
       setComments(Array.isArray(res.data) ? res.data : res.data.comments || res.data.data || []);
       setNewComment('');
     } catch {
@@ -48,60 +40,69 @@ export const CommentsDialog = ({ open, onClose, postId }) => {
     }
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Comments</DialogTitle>
-      <DialogContent dividers>
-        {loading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="100px">
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Alert severity="error">{error}</Alert>
-        ) : comments.length === 0 ? (
-          <Typography>No comments yet.</Typography>
-        ) : (
-          <List>
-            {comments.map((comment, idx) => (
-              <ListItem key={comment.id || idx} alignItems="flex-start">
-                <ListItemText
-                  primary={comment.comment || comment.text}
-                  secondary={comment.user?.username ? `By ${comment.user.username}` : ''}
-                />
-              </ListItem>
-            ))}
-          </List>
-        )}
-        {user && (
-          <Box mt={2}>
-            <TextField
-              label="Add a comment"
-              value={newComment}
-              onChange={e => setNewComment(e.target.value)}
-              fullWidth
-              multiline
-              minRows={2}
-              disabled={submitting}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleAddComment}
-              disabled={submitting || !newComment.trim()}
-              sx={{ mt: 1 }}
-            >
-              {submitting ? <CircularProgress size={20} color="inherit" /> : 'Post Comment'}
-            </Button>
-          </Box>
-        )}
-        {!user && (
-          <Typography color="text.secondary" mt={2}>Log in to add a comment.</Typography>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Close</Button>
-      </DialogActions>
-    </Dialog>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div className="bg-card w-full max-w-lg rounded-xl shadow-lg border border-border flex flex-col max-h-[90vh]">
+        <div className="flex justify-between items-center p-4 border-b border-border">
+          <h2 className="text-xl font-semibold text-foreground">Comments</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:bg-muted p-1 rounded-full transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="p-4 overflow-y-auto flex-1">
+          {loading ? (
+            <div className="flex justify-center p-8">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : error ? (
+            <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">{error}</div>
+          ) : comments.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">No comments yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {comments.map((comment, idx) => (
+                <div key={comment.id || idx} className="pb-3 border-b border-border last:border-0 last:pb-0">
+                  <p className="text-foreground">{comment.comment || comment.text}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {comment.user?.username ? `By ${comment.user.username}` : 'Anonymous'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="p-4 border-t border-border bg-card rounded-b-xl">
+          {user ? (
+            <div className="space-y-3">
+              <textarea
+                className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                placeholder="Add a comment"
+                rows="2"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                disabled={submitting}
+              />
+              <div className="flex justify-end">
+                <button
+                  onClick={handleAddComment}
+                  disabled={submitting || !newComment.trim()}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center"
+                >
+                  {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                  Post Comment
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center">Log in to add a comment.</p>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -116,7 +117,7 @@ const Dashboard = () => {
         const postsData = Array.isArray(res.data) 
           ? res.data 
           : res.data.posts || res.data.data || [];
-        setPosts(postsData.slice(0, 3)); // Limit to 3 posts for dashboard
+        setPosts(postsData.slice(0, 3));
       } catch (error) {
         console.error('Error fetching posts:', error);
         setPosts([]);
@@ -129,39 +130,24 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <Box 
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
-    >
-      <Box 
-        sx={{
-          p: 3,
-          pb: 3,
-          bgcolor: 'background.default',
-          borderBottom: 1,
-          borderColor: 'divider',
-        }}
-      >
-        <Typography variant="h4" fontWeight="bold" color="primary.main">
-          Latest Posts
-        </Typography>
-      </Box>
+    <div className="flex flex-col h-full w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground border-b border-border pb-4">
+          Dashboard
+        </h1>
+        <p className="mt-2 text-muted-foreground">Welcome to your dashboard. Here are the latest posts.</p>
+      </div>
 
-      <Box 
-        sx={{
-          flex: 1,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <PostsGrid posts={posts} />
-      </Box>
-    </Box>
+      <div className="flex-1">
+        {loading ? (
+          <div className="flex justify-center p-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <PostsGrid posts={posts} />
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -1,34 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  Avatar,
-  Paper,
-  Tabs,
-  Tab,
-  CircularProgress,
-  Alert,
-  Container,
-  GlobalStyles,
-} from '@mui/material';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import PostsGrid from '../components/PostsGrid';
-
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`profile-tabpanel-${index}`}
-      aria-labelledby={`profile-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
+import { Loader2, AlertCircle } from 'lucide-react';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -72,136 +46,113 @@ const Profile = () => {
     fetchProfileData();
   }, [user]);
 
-  const handleTabChange = (event, newValue) => {
-    setTabIndex(newValue);
-  };
-
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   if (!user) {
     return (
-      <Container maxWidth="sm" sx={{ textAlign: 'center', mt: 8 }}>
-        <Typography variant="h5">Please log in to view your profile.</Typography>
-      </Container>
+      <div className="max-w-md mx-auto text-center mt-16 p-6 bg-card rounded-xl border border-border shadow-sm">
+        <h2 className="text-xl font-semibold text-foreground">Please log in to view your profile.</h2>
+      </div>
     );
   }
 
   return (
-    <>
-      {/* Custom Scrollbar Styling */}
-      <GlobalStyles
-        styles={{
-          '*::-webkit-scrollbar': {
-            width: '8px',
-          },
-          '*::-webkit-scrollbar-track': {
-            background: '#f1f1f1',
-          },
-          '*::-webkit-scrollbar-thumb': {
-            background: '#888',
-            borderRadius: '4px',
-          },
-          '*::-webkit-scrollbar-thumb:hover': {
-            background: '#555',
-          },
-        }}
-      />
+    <div className="flex-1 w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      
+      {/* Profile Header Card */}
+      <div className="bg-card border border-border rounded-2xl p-8 mb-8 flex flex-col items-center text-center shadow-sm">
+        <div className="w-24 h-24 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-4xl font-bold mb-4">
+          {user.username?.charAt(0).toUpperCase()}
+        </div>
+        <h1 className="text-2xl font-bold text-foreground mb-1">{user.username}</h1>
+        <p className="text-muted-foreground mb-6">{user.email}</p>
+        
+        <div className="flex gap-8 border-t border-border pt-6 w-full max-w-sm justify-center">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-foreground">{createdPosts.length}</p>
+            <p className="text-sm text-muted-foreground">Total Posts</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-foreground">{likedPosts.length}</p>
+            <p className="text-sm text-muted-foreground">Liked Posts</p>
+          </div>
+        </div>
+      </div>
 
-      {/* Scrollable Content */}
-      <Box
-        sx={{
-          height: 'calc(100vh - 96px)', // Adjust this based on navbar height
-          overflowY: 'auto',
-          pr: 1,
-        }}
-      >
-        <Container maxWidth="lg" sx={{ pt: 4, pb: 6 }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 4,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              mb: 4,
-              bgcolor: 'grey.100',
-              borderRadius: 3,
-            }}
+      {alert && (
+        <div className={`mb-6 p-4 rounded-lg flex items-center gap-2 ${
+          alert.type === 'error' ? 'bg-destructive/10 text-destructive' : 'bg-green-500/10 text-green-600 dark:text-green-500'
+        }`}>
+          <AlertCircle className="w-5 h-5" />
+          <span>{alert.message}</span>
+          <button 
+            className="ml-auto opacity-70 hover:opacity-100" 
+            onClick={() => setAlert(null)}
           >
-            <Avatar
-              sx={{
-                width: 100,
-                height: 100,
-                mb: 2,
-                bgcolor: 'primary.main',
-                fontSize: '3rem',
-              }}
-            >
-              {user.username?.charAt(0).toUpperCase()}
-            </Avatar>
-            <Typography variant="h4" fontWeight="bold">{user.username}</Typography>
-            <Typography variant="body1" color="text.secondary">{user.email}</Typography>
-            <Box sx={{ mt: 2, display: 'flex', gap: 4 }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" fontWeight="bold">{createdPosts.length}</Typography>
-                <Typography variant="body2" color="text.secondary">Total Posts</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" fontWeight="bold">{likedPosts.length}</Typography>
-                <Typography variant="body2" color="text.secondary">Liked Posts</Typography>
-              </Box>
-            </Box>
-          </Paper>
+            ×
+          </button>
+        </div>
+      )}
 
-          {alert && (
-            <Alert severity={alert.type} sx={{ mb: 2 }} onClose={() => setAlert(null)}>
-              {alert.message}
-            </Alert>
-          )}
+      {/* Tabs */}
+      <div className="border-b border-border w-full flex justify-center mb-8">
+        <div className="flex space-x-8">
+          <button
+            onClick={() => setTabIndex(0)}
+            className={`pb-4 px-2 text-sm font-medium transition-colors border-b-2 ${
+              tabIndex === 0 
+                ? 'border-primary text-primary' 
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            }`}
+          >
+            My Posts
+          </button>
+          <button
+            onClick={() => setTabIndex(1)}
+            className={`pb-4 px-2 text-sm font-medium transition-colors border-b-2 ${
+              tabIndex === 1 
+                ? 'border-primary text-primary' 
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            }`}
+          >
+            Liked Posts
+          </button>
+        </div>
+      </div>
 
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={tabIndex} onChange={handleTabChange} centered>
-              <Tab label="My Posts" />
-              <Tab label="Liked Posts" />
-            </Tabs>
-          </Box>
-
-          <Box sx={{ 
-            '& .MuiGrid-item': {
-              '@media (min-width:900px)': { // MUI md breakpoint
-                flexBasis: '50%',
-                maxWidth: '50%',
-              }
-            } 
-          }}>
-            <TabPanel value={tabIndex} index={0}>
-              {createdPosts.length > 0 ? (
-                <PostsGrid posts={createdPosts} />
-              ) : (
-                <Typography sx={{ textAlign: 'center', mt: 4 }}>
-                  You have not created any posts yet.
-                </Typography>
-              )}
-            </TabPanel>
-            <TabPanel value={tabIndex} index={1}>
-              {likedPosts.length > 0 ? (
-                <PostsGrid posts={likedPosts} />
-              ) : (
-                <Typography sx={{ textAlign: 'center', mt: 4 }}>
-                  You have not liked any posts yet.
-                </Typography>
-              )}
-            </TabPanel>
-          </Box>
-        </Container>
-      </Box>
-    </>
+      {/* Tab Panels */}
+      <div className="w-full">
+        {tabIndex === 0 && (
+          <div>
+            {createdPosts.length > 0 ? (
+              <PostsGrid posts={createdPosts} />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-xl border border-dashed border-border">
+                You have not created any posts yet.
+              </div>
+            )}
+          </div>
+        )}
+        
+        {tabIndex === 1 && (
+          <div>
+            {likedPosts.length > 0 ? (
+              <PostsGrid posts={likedPosts} />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-xl border border-dashed border-border">
+                You have not liked any posts yet.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

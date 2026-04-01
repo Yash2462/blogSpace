@@ -1,186 +1,180 @@
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import Divider from '@mui/material/Divider';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useState } from 'react';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
-import { Home, Add, Person, Logout } from '@mui/icons-material';
-import SvgIcon from '@mui/material/SvgIcon';
-
-const navLinks = [
-  { to: '/posts', label: 'Home', icon: <Home sx={{ fontSize: 20 }} /> },
-  { to: '/create-post', label: 'Write', icon: <Add sx={{ fontSize: 20 }} /> },
-  { to: '/profile', label: 'Profile', icon: <Person sx={{ fontSize: 20 }} /> },
-];
-
-function BlogSpaceIcon(props) {
-  return (
-    <SvgIcon {...props}>
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v2H7v-2.15c0-1.69 1.36-3.05 3.05-3.05h.9c.35 0 .68.06.99.16l2.1 6.3c-.63.29-1.31.48-2.04.57zM17.05 18c-.31-.63-.7-1.19-1.14-1.69l-2.01-2.01c.2-.7.3-1.44.3-2.22 0-3.31-2.69-6-6-6-.05 0-.09.01-.14.01L6.1 4.2c1.58-.79 3.39-1.2 5.3-1.2 4.41 0 8 3.59 8 8 0 1.98-.71 3.78-1.87 5.17l-.18.23z" />
-    </SvgIcon>
-  );
-}
+import { Menu, X, Sun, Moon, Home as HomeIcon, PlusSquare, User, LogOut } from 'lucide-react';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [theme, setTheme] = useState(
+    typeof window !== 'undefined' ? document.documentElement.className.includes('dark') ? 'dark' : 'light' : 'light'
+  );
+
+  const toggleTheme = () => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('color-theme', 'dark');
+      setTheme('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('color-theme', 'light');
+      setTheme('light');
+    }
+  };
+
+  useEffect(() => {
+    // Check theme on mount
+    const isDark = document.documentElement.classList.contains('dark');
+    setTheme(isDark ? 'dark' : 'light');
+  }, []);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+    setIsMobileMenuOpen(false);
   };
 
-  const drawer = (
-    <Box onClick={() => setDrawerOpen(false)} sx={{ textAlign: 'center' }}>
-      <Typography variant="h6" sx={{ my: 2, fontWeight: 'bold' }}>
-        BlogSpace
-      </Typography>
-      <Divider />
-      <List>
-        {navLinks.map((item) => (
-          <ListItem key={item.to} disablePadding>
-            <ListItemButton sx={{ textAlign: 'left' }} component={NavLink} to={item.to}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                {item.icon}
-                <ListItemText primary={item.label} />
-              </Box>
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-      <Divider />
-      <Button
-        fullWidth
-        variant="text"
-        onClick={handleLogout}
-        sx={{
-          justifyContent: 'flex-start',
-          gap: 2,
-          p: '10px 16px',
-          textTransform: 'none',
-          color: 'text.secondary',
-        }}
-      >
-        <Logout sx={{ fontSize: 20 }} />
-        Logout
-      </Button>
-    </Box>
-  );
+  const closeMenu = () => setIsMobileMenuOpen(false);
+
+  const authLinks = [
+    { to: '/posts', label: 'Home', icon: <HomeIcon className="w-4 h-4 mr-2" /> },
+    { to: '/create-post', label: 'Write', icon: <PlusSquare className="w-4 h-4 mr-2" /> },
+    { to: '/profile', label: 'Profile', icon: <User className="w-4 h-4 mr-2" /> },
+  ];
+
+  const publicLinks = [
+    { to: '/', label: 'Home', icon: <HomeIcon className="w-4 h-4 mr-2" /> },
+  ];
+
+  const linksToUse = user ? authLinks : publicLinks;
 
   return (
-    <>
-      <AppBar
-        position="fixed"
-        color="inherit"
-        elevation={0}
-        sx={{
-          bgcolor: 'white',
-          borderBottom: '1px solid',
-          borderColor: 'grey.200',
-        }}
-      >
-        <Toolbar
-          sx={{
-            justifyContent: 'space-between',
-            height: 64,
-          }}
-        >
-          <Box
-            component={NavLink}
-            to="/posts"
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              textDecoration: 'none',
-              color: 'inherit',
-              flexBasis: { xs: 'auto', md: '200px' },
-              flexShrink: 0,
-            }}
-          >
-            <BlogSpaceIcon sx={{ color: '#4A90E2', mr: 1, fontSize: 32 }} />
-            <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold' }}>
+    <header className="fixed top-0 w-full z-50 transition-all duration-300 glass-effect">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={() => navigate(user ? '/posts' : '/')}>
+            <span className="text-xl font-mono font-bold text-foreground flex items-center">
+              <span className="text-primary mr-1">&lt;</span>
               BlogSpace
-            </Typography>
-          </Box>
+              <span className="text-primary ml-1">/&gt;</span>
+            </span>
+          </div>
 
-          {isMobile ? (
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="end"
-              onClick={() => setDrawerOpen(true)}
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex space-x-6 items-center">
+            {linksToUse.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  `flex items-center text-sm font-medium transition-colors hover:text-primary ${
+                    isActive ? 'text-primary font-semibold' : 'text-muted-foreground'
+                  }`
+                }
+              >
+                {link.icon}
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Right side actions */}
+          <div className="hidden md:flex items-center space-x-4">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              aria-label="Toggle Theme"
             >
-              <MenuIcon />
-            </IconButton>
-          ) : (
-            <>
-              <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', gap: 1 }}>
-                {navLinks.map((item) => (
-                  <Button
-                    key={item.label}
-                    component={NavLink}
-                    to={item.to}
-                    startIcon={item.icon}
-                    sx={{
-                      textTransform: 'none',
-                      color: 'text.secondary',
-                      fontWeight: 500,
-                      '&.active': {
-                        color: 'primary.main',
-                        fontWeight: 'bold',
-                      },
-                    }}
-                  >
-                    {item.label}
-                  </Button>
-                ))}
-              </Box>
-              <Box sx={{ flexBasis: '200px', display: 'flex', justifyContent: 'flex-end' }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<Logout />}
-                  onClick={handleLogout}
-                  sx={{ borderRadius: 20, textTransform: 'none' }}
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="flex items-center text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </button>
+            ) : (
+              location.pathname !== '/login' && location.pathname !== '/signup' && (
+                <button
+                  onClick={() => navigate('/login')}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
-                  Logout
-                </Button>
-              </Box>
-            </>
-          )}
-        </Toolbar>
-      </AppBar>
-      <nav>
-        <Drawer
-          variant="temporary"
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
-          sx={{
-            display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 240 },
-          }}
-        >
-          {drawer}
-        </Drawer>
-      </nav>
-    </>
+                  Sign In
+                </button>
+              )
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="flex md:hidden items-center space-x-4">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full text-muted-foreground hover:bg-muted transition-colors"
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-muted-foreground hover:text-foreground p-2 focus:outline-none"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Navigation Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-border bg-background">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            {linksToUse.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `flex items-center px-3 py-2 rounded-md text-base font-medium ${
+                    isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`
+                }
+              >
+                {link.icon}
+                {link.label}
+              </NavLink>
+            ))}
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center px-3 py-2 rounded-md text-base font-medium text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </button>
+            ) : (
+              location.pathname !== '/login' && location.pathname !== '/signup' && (
+                <button
+                  onClick={() => {
+                    navigate('/login');
+                    closeMenu();
+                  }}
+                  className="flex w-full mt-4 items-center justify-center bg-primary text-primary-foreground px-3 py-2 rounded-md text-base font-medium"
+                >
+                  Sign In
+                </button>
+              )
+            )}
+          </div>
+        </div>
+      )}
+    </header>
   );
 };
 
