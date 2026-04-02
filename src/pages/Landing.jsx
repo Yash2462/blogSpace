@@ -123,19 +123,20 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="w-full border-t border-border bg-background py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center font-mono text-lg font-bold">
+      <footer className="w-full border-t border-border bg-background py-10 mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center font-mono text-xl font-bold">
             <span className="text-primary mr-1">&lt;</span>
-            CodeWithYash
+            BlogSpace
             <span className="text-primary ml-1">/&gt;</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} CodeWithYash. All rights reserved.
+            © {new Date().getFullYear()} BlogSpace. Inspiring the creative community.
           </p>
-          <div className="flex space-x-4">
-            <Link to="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link>
-            <Link to="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms of Use</Link>
+          <div className="flex space-x-6">
+            <Link to="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy</Link>
+            <Link to="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms</Link>
+            <Link to="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Contact</Link>
           </div>
         </div>
       </footer>

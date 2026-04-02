@@ -70,8 +70,8 @@ const Navbar = () => {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `flex items-center text-sm font-medium transition-colors hover:text-primary ${
-                    isActive ? 'text-primary font-semibold' : 'text-muted-foreground'
+                  `flex items-center text-sm font-medium transition-all hover:text-primary h-16 border-b-2 px-2 ${
+                    isActive ? 'text-primary border-primary' : 'text-muted-foreground border-transparent'
                   }`
                 }
               >

@@ -114,4 +114,16 @@
   .glass-effect {
     @apply bg-background/80 backdrop-blur-md border-b border-border;
   }
+  
+  .aryan-block {
+    @apply bg-neutral-100 dark:bg-neutral-800/60 p-4 rounded-xl mb-6 font-mono text-[14px] leading-relaxed border border-border/40 transition-colors hover:border-primary/20;
+  }
+  
+  .aryan-text {
+    @apply font-mono text-[14px] leading-relaxed;
+  }
+  
+  .aryan-syntax {
+    @apply text-primary/60 mr-2 select-none;
+  }
 }
