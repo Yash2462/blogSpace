@@ -8,6 +8,7 @@ import Posts from './pages/Posts';
 import PostDetail from './pages/PostDetail';
 import CreatePost from './pages/CreatePost';
 import Profile from './pages/Profile';
+import ScrollToTop from './components/ScrollToTop';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './App.css';
 import { jwtDecode } from 'jwt-decode';
@@ -42,6 +43,7 @@ function AppRoutes() {
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300 antialiased">
       {!hideNavbar && <Navbar />}
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
