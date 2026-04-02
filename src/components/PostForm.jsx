@@ -235,7 +235,7 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
                       onChange={setContent}
                       preview="edit"
                       height={400}
-                      className="!bg-transparent"
+                      className="!bg-transparent aryan-text"
                     />
                   </div>
                 ) : (
@@ -254,9 +254,52 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
                       </div>
                     )}
 
-                    <div className="prose prose-lg dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-headings:tracking-tight whitespace-pre-wrap">
+                    <div className="max-w-none">
                       <ReactMarkdown
                         components={{
+                          h1: ({ children }) => (
+                            <div className="aryan-block">
+                              <span className="aryan-syntax">#</span>
+                              <span className="font-bold text-xl">{children}</span>
+                            </div>
+                          ),
+                          h2: ({ children }) => (
+                            <div className="aryan-block">
+                              <span className="aryan-syntax">##</span>
+                              <span className="font-bold text-lg">{children}</span>
+                            </div>
+                          ),
+                          h3: ({ children }) => (
+                            <div className="aryan-block">
+                              <span className="aryan-syntax">###</span>
+                              <span className="font-bold">{children}</span>
+                            </div>
+                          ),
+                          p: ({ children }) => {
+                            if (typeof children === 'string' && children.trim() === '') return null;
+                            return (
+                              <div className="aryan-block">
+                                {children}
+                              </div>
+                            );
+                          },
+                          ul: ({ children }) => (
+                            <div className="aryan-block space-y-2">
+                              {children}
+                            </div>
+                          ),
+                          li: ({ children }) => (
+                            <div className="flex items-start">
+                              <span className="aryan-syntax">•</span>
+                              <span>{children}</span>
+                            </div>
+                          ),
+                          blockquote: ({ children }) => (
+                            <div className="aryan-block border-l-4 border-primary/20">
+                              <span className="aryan-syntax">&gt;</span>
+                              <span className="italic opacity-80">{children}</span>
+                            </div>
+                          ),
                           code({node, inline, className, children, ...props}) {
                             const match = /language-(\w+)/.exec(className || '');
                             return !inline && match ? (

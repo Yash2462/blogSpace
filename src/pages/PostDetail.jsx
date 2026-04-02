@@ -5,7 +5,8 @@ import CommentsDrawer from '../components/CommentsDrawer';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check, ArrowLeft, Loader2, MessageSquare } from 'lucide-react';
+import { Copy, Check, ArrowLeft, Loader2, MessageSquare, Share2, Calendar, Clock } from 'lucide-react';
+import { format } from 'date-fns';
 
 const CodeBlock = ({ language, value }) => {
   const [copied, setCopied] = useState(false);
@@ -130,17 +131,41 @@ const PostDetail = () => {
           
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight leading-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight leading-tight mb-8">
               {post.title}
             </h1>
             
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">
+            <div className="flex flex-wrap items-center gap-y-4 gap-x-6 text-sm text-muted-foreground border-b border-border pb-8">
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-wider text-[10px]">
                 {post.category?.name || 'Uncategorized'}
               </span>
-              <span className="flex items-center">
-                By <strong className="ml-1 text-foreground">{post.user?.username || 'Unknown'}</strong>
-              </span>
+              
+              <div className="flex items-center">
+                <Calendar className="w-4 h-4 mr-1.5 opacity-70" />
+                <span>{post.createdAt ? format(new Date(post.createdAt), 'MMMM dd, yyyy') : 'Recently Published'}</span>
+              </div>
+
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-1.5 opacity-70" />
+                <span>{Math.max(1, Math.ceil(((post.data || post.content || '').split(' ').length) / 200))} min read</span>
+              </div>
+
+              <div className="flex items-center">
+                By <strong className="ml-1.5 text-foreground">{post.user?.username || 'Writer'}</strong>
+              </div>
+
+              <div className="ml-auto flex items-center">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    // Could add a toast here
+                  }}
+                  className="flex items-center gap-2 hover:text-primary transition-colors font-medium border border-border px-3 py-1.5 rounded-lg hover:bg-accent"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Share
+                </button>
+              </div>
             </div>
           </div>
 
@@ -157,9 +182,57 @@ const PostDetail = () => {
           )}
 
           {/* Post Content */}
-          <div className="prose prose-lg dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary hover:prose-a:text-primary/80 prose-img:rounded-xl">
+          <div className="max-w-none">
             <ReactMarkdown
               components={{
+                h1: ({ children }) => (
+                  <div className="aryan-block">
+                    <span className="aryan-syntax">#</span>
+                    <span className="font-bold text-xl">{children}</span>
+                  </div>
+                ),
+                h2: ({ children }) => (
+                  <div className="aryan-block">
+                    <span className="aryan-syntax">##</span>
+                    <span className="font-bold text-lg">{children}</span>
+                  </div>
+                ),
+                h3: ({ children }) => (
+                  <div className="aryan-block">
+                    <span className="aryan-syntax">###</span>
+                    <span className="font-bold">{children}</span>
+                  </div>
+                ),
+                p: ({ children }) => {
+                  // If children is empty or just whitespace/newlines, don't render a block
+                  const isEmpty = React.Children.toArray(children).every(child => 
+                    typeof child === 'string' && child.trim() === ''
+                  );
+                  if (isEmpty) return null;
+                  
+                  return (
+                    <div className="aryan-block">
+                      {children}
+                    </div>
+                  );
+                },
+                ul: ({ children }) => (
+                  <div className="aryan-block space-y-2">
+                    {children}
+                  </div>
+                ),
+                li: ({ children }) => (
+                  <div className="flex items-start">
+                    <span className="aryan-syntax">•</span>
+                    <span>{children}</span>
+                  </div>
+                ),
+                blockquote: ({ children }) => (
+                  <div className="aryan-block border-l-4 border-primary/20">
+                    <span className="aryan-syntax">&gt;</span>
+                    <span className="italic opacity-80">{children}</span>
+                  </div>
+                ),
                 code({node, inline, className, children, ...props}) {
                   const match = /language-(\w+)/.exec(className || '');
                   return !inline && match ? (
@@ -181,17 +254,31 @@ const PostDetail = () => {
           </div>
 
           {/* Footer Actions */}
-          <div className="mt-12 pt-8 border-t border-border flex justify-between items-center">
-            <div className="text-sm text-muted-foreground">
-              Thanks for reading!
+          <div className="mt-12 pt-12 border-t border-border">
+            
+            {/* Author Section */}
+            <div className="flex items-center gap-4 mb-12 p-6 rounded-2xl bg-muted/40 border border-border/50">
+              <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-bold text-2xl">
+                {(post.user?.username || 'W')[0].toUpperCase()}
+              </div>
+              <div>
+                <h4 className="font-bold text-foreground">Written by {post.user?.username || 'Writer'}</h4>
+                <p className="text-sm text-muted-foreground">Passionate about sharing knowledge and exploring the depth of tech and logic.</p>
+              </div>
             </div>
-            <button
-              onClick={() => setCommentsOpen(true)}
-              className="inline-flex items-center px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
-            >
-              <MessageSquare className="w-5 h-5 mr-2" />
-              View Comments
-            </button>
+
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-muted-foreground italic">
+                Thanks for reading this article.
+              </div>
+              <button
+                onClick={() => setCommentsOpen(true)}
+                className="inline-flex items-center px-6 py-3 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+              >
+                <MessageSquare className="w-5 h-5 mr-2" />
+                View Comments
+              </button>
+            </div>
           </div>
 
         </div>

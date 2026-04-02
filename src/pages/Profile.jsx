@@ -66,21 +66,21 @@ const Profile = () => {
     <div className="flex-1 w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       
       {/* Profile Header Card */}
-      <div className="bg-card border border-border rounded-2xl p-8 mb-8 flex flex-col items-center text-center shadow-sm">
-        <div className="w-24 h-24 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-4xl font-bold mb-4">
+      <div className="aryan-block flex flex-col items-center text-center p-12 mb-10 shadow-md">
+        <div className="w-24 h-24 bg-primary/10 border-2 border-primary/20 text-primary rounded-full flex items-center justify-center text-4xl font-bold mb-6">
           {user.username?.charAt(0).toUpperCase()}
         </div>
-        <h1 className="text-2xl font-bold text-foreground mb-1">{user.username}</h1>
-        <p className="text-muted-foreground mb-6">{user.email}</p>
+        <h1 className="text-3xl font-bold text-foreground mb-1 tracking-tight">{user.username}</h1>
+        <p className="text-muted-foreground mb-8 font-mono text-sm">{user.email}</p>
         
-        <div className="flex gap-8 border-t border-border pt-6 w-full max-w-sm justify-center">
+        <div className="flex gap-12 border-t border-border/40 pt-8 w-full max-w-sm justify-center">
           <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">{createdPosts.length}</p>
-            <p className="text-sm text-muted-foreground">Total Posts</p>
+            <p className="text-3xl font-bold text-foreground font-mono">{createdPosts.length}</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Total Posts</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-foreground">{likedPosts.length}</p>
-            <p className="text-sm text-muted-foreground">Liked Posts</p>
+            <p className="text-3xl font-bold text-foreground font-mono">{likedPosts.length}</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Liked Posts</p>
           </div>
         </div>
       </div>

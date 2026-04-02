@@ -91,6 +91,15 @@ const PostsGrid = ({ posts = [] }) => {
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   };
 
+  const stripMarkdown = (text) => {
+    if (!text) return '';
+    return text
+      .replace(/[#*`>~]/g, '') // Remove basic symbols
+      .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Keep link text, remove URL
+      .trim();
+  };
+
+
   if (!posts || posts.length === 0) {
     return (
       <div className="w-full py-12 text-center text-muted-foreground">
@@ -111,7 +120,7 @@ const PostsGrid = ({ posts = [] }) => {
           <div
             key={postId}
             onClick={() => handlePostClick(post)}
-            className="group flex flex-col bg-card border border-border rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 h-full max-w-[320px] mx-auto w-full"
+            className="group flex flex-col bg-card border border-border rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 h-full w-full"
           >
             {(post.postImage || post.imageUrl) && (
               <div className="w-full h-48 overflow-hidden bg-muted">
@@ -133,13 +142,19 @@ const PostsGrid = ({ posts = [] }) => {
                 </span>
               </div>
               
-              <h2 className="text-lg font-bold text-foreground mb-2 line-clamp-2 leading-tight">
+              <h2 className="text-xl font-bold text-foreground mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
                 {post.title || 'Untitled Post'}
               </h2>
               
-              <p className="text-sm text-muted-foreground line-clamp-3 mb-4 flex-grow">
-                {post.data || post.content || 'No content available'}
+              <p className="text-sm text-muted-foreground line-clamp-3 mb-4 flex-grow leading-relaxed">
+                {stripMarkdown(post.data || post.content) || 'No content available'}
               </p>
+
+
+              {/* Reading time */}
+              <div className="text-[11px] font-medium text-muted-foreground mb-4 uppercase tracking-wider">
+                {Math.max(1, Math.ceil(((post.data || post.content || '').split(' ').length) / 200))} min read
+              </div>
               
               <div className="flex items-center justify-between pt-4 border-t border-border mt-auto">
                 <span className="text-xs font-medium text-foreground w-24 truncate">
