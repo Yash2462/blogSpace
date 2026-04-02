@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import PostsGrid from '../components/PostsGrid';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Search, ArrowUpDown } from 'lucide-react';
 
 const Posts = () => {
   const { user, loadingUser } = useAuth();
@@ -11,6 +11,9 @@ const Posts = () => {
   const [alert, setAlert] = useState(null);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('latest');
+
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -90,6 +93,34 @@ const Posts = () => {
     }
   };
 
+  const filteredAndSortedPosts = useMemo(() => {
+    let result = [...posts];
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(post => 
+        (post.title && post.title.toLowerCase().includes(query)) ||
+        (post.data && post.data.toLowerCase().includes(query)) ||
+        (post.category?.name && post.category.name.toLowerCase().includes(query))
+      );
+    }
+
+    switch (sortBy) {
+      case 'oldest':
+        result.sort((a, b) => new Date(a.createdAt || a.updatedAt || 0) - new Date(b.createdAt || b.updatedAt || 0));
+        break;
+      case 'a-z':
+        result.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        break;
+      case 'latest':
+      default:
+        result.sort((a, b) => new Date(b.createdAt || b.updatedAt || 0) - new Date(a.createdAt || a.updatedAt || 0));
+        break;
+    }
+
+    return result;
+  }, [posts, searchQuery, sortBy]);
+
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
@@ -108,24 +139,53 @@ const Posts = () => {
 
         <div className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
-            Welcome to BlogSpace
+            Discover Great Articles
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover amazing stories, share your thoughts, and connect with a
-            community of passionate writers and readers.
+            Find the best thoughts, ideas, and stories from our creative community.
           </p>
         </div>
 
+        {/* Search and Sort Section */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+          <div className="relative w-full md:max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search articles by title, content or category..."
+              className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm transition-shadow shadow-sm hover:shadow-md"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground hidden md:block" />
+            <select
+              className="block w-full md:w-auto py-2.5 px-4 border border-border rounded-xl bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm transition-shadow shadow-sm hover:shadow-md font-medium cursor-pointer"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="latest">Latest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="a-z">Alphabetical (A-Z)</option>
+            </select>
+          </div>
+        </div>
+
         {/* Category filters */}
-        <div className="flex flex-wrap justify-center gap-2 mb-10">
+        <div className="flex flex-wrap items-center gap-2 mb-10 pb-6 border-b border-border overflow-x-auto">
+          <span className="text-sm font-semibold text-muted-foreground mr-2">Categories:</span>
           {categories.map((category) => (
             <button
               key={category.id || category.name}
               onClick={() => handleCategoryClick(category.name)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                 selectedCategory === category.name
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-card border border-border text-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'bg-primary text-primary-foreground shadow-md scale-105'
+                  : 'bg-card border border-border text-foreground hover:bg-accent hover:text-accent-foreground hover:scale-105'
               }`}
             >
               {category.name}
@@ -139,7 +199,17 @@ const Posts = () => {
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
           </div>
         ) : (
-          <PostsGrid posts={posts} />
+          <div>
+            {filteredAndSortedPosts.length === 0 ? (
+              <div className="text-center py-20 bg-card rounded-xl border border-border">
+                <Search className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-foreground mb-2">No posts found</h3>
+                <p className="text-muted-foreground">Try adjusting your search query or category filter.</p>
+              </div>
+            ) : (
+              <PostsGrid posts={filteredAndSortedPosts} />
+            )}
+          </div>
         )}
       </div>
     </div>
