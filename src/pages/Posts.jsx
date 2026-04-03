@@ -11,24 +11,34 @@ const Posts = () => {
   const [alert, setAlert] = useState(null);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('latest');
+  const [urlQuery, setUrlQuery] = useState(new URLSearchParams(window.location.search).get('query') || '');
 
 
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
       try {
+        // Fetch categories
         const catRes = await api.get('/api/category');
-        const categoriesData =
-          catRes.data.categories || catRes.data.data || catRes.data || [];
-
+        const categoriesData = catRes.data.categories || catRes.data.data || catRes.data || [];
         setCategories([{ id: 'All', name: 'All' }, ...categoriesData]);
 
-        const postRes = await api.get('/api/posts');
-        const postsData =
-          postRes.data.posts || postRes.data.data || postRes.data || [];
-        setPosts(postsData);
+        // Handle initial query from URL
+        const params = new URLSearchParams(window.location.search);
+        const query = params.get('query');
+        
+        if (query) {
+          setUrlQuery(query);
+          setSearchQuery(query);
+          const searchRes = await api.get(`/api/posts/search?query=${encodeURIComponent(query)}`);
+          const postsData = searchRes.data.posts || searchRes.data.data || searchRes.data || [];
+          setPosts(postsData);
+        } else {
+          const postRes = await api.get('/api/posts');
+          const postsData = postRes.data.posts || postRes.data.data || postRes.data || [];
+          setPosts(postsData);
+        }
       } catch (error) {
         console.error('Error fetching initial data:', error);
         setAlert({
@@ -42,6 +52,34 @@ const Posts = () => {
 
     fetchInitialData();
   }, []);
+
+  // Effect to handle URL search parameter changes
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('query') || '';
+    if (query !== urlQuery) {
+      setUrlQuery(query);
+      setSearchQuery(query);
+      
+      const fetchSearchResults = async () => {
+        setLoading(true);
+        try {
+          const endpoint = query 
+            ? `/api/posts/search?query=${encodeURIComponent(query)}`
+            : '/api/posts';
+          const res = await api.get(endpoint);
+          const postsData = res.data.posts || res.data.data || res.data || [];
+          setPosts(postsData);
+        } catch (err) {
+          console.error('Search error:', err);
+          setPosts([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchSearchResults();
+    }
+  }, [window.location.search, urlQuery]);
 
   useEffect(() => {
     const fetchPostsByCategory = async () => {
@@ -96,14 +134,8 @@ const Posts = () => {
   const filteredAndSortedPosts = useMemo(() => {
     let result = [...posts];
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(post => 
-        (post.title && post.title.toLowerCase().includes(query)) ||
-        (post.data && post.data.toLowerCase().includes(query)) ||
-        (post.category?.name && post.category.name.toLowerCase().includes(query))
-      );
-    }
+    // Client-side category filtering if not already filtered by server (though server-side is better)
+    // Server-side category filtering is handled by the other useEffect
 
     switch (sortBy) {
       case 'oldest':
@@ -154,10 +186,23 @@ const Posts = () => {
             </div>
             <input
               type="text"
-              placeholder="Search articles by title, content or category..."
+              placeholder="Search articles by title or content..."
               className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm transition-shadow shadow-sm hover:shadow-md"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                // Debounce is handled by Navbar sync or can be added here if needed
+                // For now, let's rely on the Navbar's sync for URL changes
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const params = new URLSearchParams(window.location.search);
+                  params.set('query', searchQuery);
+                  window.history.pushState({}, '', `/posts?${params.toString()}`);
+                  // Force effect trigger
+                  setUrlQuery(null); 
+                }
+              }}
             />
           </div>
           

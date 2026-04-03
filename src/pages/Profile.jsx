@@ -73,14 +73,14 @@ const Profile = () => {
         <h1 className="text-3xl font-bold text-foreground mb-1 tracking-tight">{user.username}</h1>
         <p className="text-muted-foreground mb-8 font-mono text-sm">{user.email}</p>
         
-        <div className="flex gap-12 border-t border-border/40 pt-8 w-full max-w-sm justify-center">
-          <div className="text-center">
-            <p className="text-3xl font-bold text-foreground font-mono">{createdPosts.length}</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Total Posts</p>
+        <div className="grid grid-cols-2 gap-4 w-full max-w-md pt-8 border-t border-border/40">
+          <div className="bg-muted/30 rounded-2xl p-4 border border-border/50 hover:border-primary/30 transition-all group">
+            <p className="text-3xl font-bold text-foreground font-mono group-hover:text-primary transition-colors">{createdPosts.length}</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mt-1">Posts Created</p>
           </div>
-          <div className="text-center">
-            <p className="text-3xl font-bold text-foreground font-mono">{likedPosts.length}</p>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Liked Posts</p>
+          <div className="bg-muted/30 rounded-2xl p-4 border border-border/50 hover:border-primary/30 transition-all group">
+            <p className="text-3xl font-bold text-foreground font-mono group-hover:text-primary transition-colors">{likedPosts.length}</p>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mt-1">Posts Liked</p>
           </div>
         </div>
       </div>
