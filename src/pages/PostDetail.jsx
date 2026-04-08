@@ -5,8 +5,9 @@ import CommentsDrawer from '../components/CommentsDrawer';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check, ArrowLeft, Loader2, MessageSquare, Share2, Calendar, Clock } from 'lucide-react';
+import { Copy, Check, ArrowLeft, Loader2, MessageSquare, Share2, Calendar, Clock, Heart } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '../contexts/AuthContext';
 
 const CodeBlock = ({ language, value }) => {
   const [copied, setCopied] = useState(false);
@@ -48,45 +49,70 @@ const CodeBlock = ({ language, value }) => {
 const PostDetail = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [sharecopied, setShareCopied] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [liking, setLiking] = useState(false);
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await api.get('/api/posts');
-        let postsArray = [];
-        if (Array.isArray(res.data)) {
-          postsArray = res.data;
-        } else if (res.data && Array.isArray(res.data.posts)) {
-          postsArray = res.data.posts;
-        } else if (res.data && Array.isArray(res.data.data)) {
-          postsArray = res.data.data;
-        }
-        
-        const foundPost = postsArray.find(p => 
-          String(p._id) === String(postId) || 
-          String(p.id) === String(postId) || 
-          String(p.postId) === String(postId)
-        );
-        
-        if (foundPost) {
-          setPost(foundPost);
+        // Directly fetch the specific post by ID — much more efficient
+        const res = await api.get(`/api/posts/${postId}`);
+        const postData = res.data.data || res.data.post || res.data;
+        if (postData && (postData.id || postData._id || postData.postId)) {
+          setPost(postData);
+          const likedByList = postData.likedBy || [];
+          setLikeCount(likedByList.length);
+          if (user) {
+            setLiked(likedByList.some(u => u.id === user.id));
+          }
         } else {
           setError('Post not found');
         }
-      } catch (error) {
-        console.error('Error fetching post:', error);
-        setError('Failed to load post');
+      } catch (err) {
+        console.error('Error fetching post:', err);
+        if (err.response?.status === 404) {
+          setError('Post not found');
+        } else {
+          setError('Failed to load post');
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchPost();
-  }, [postId]);
+  }, [postId, user]);
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  };
+
+  const handleLike = async () => {
+    if (!user || liking) return;
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikeCount(prev => prev + (wasLiked ? -1 : 1));
+    setLiking(true);
+    try {
+      await api.post(`/api/posts/${postId}/like/user/${user.id}`);
+    } catch (err) {
+      console.error('Failed to like post:', err);
+      // Revert on error
+      setLiked(wasLiked);
+      setLikeCount(prev => prev + (wasLiked ? 1 : -1));
+    } finally {
+      setLiking(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -154,16 +180,28 @@ const PostDetail = () => {
                 By <strong className="ml-1.5 text-foreground">{post.user?.username || 'Writer'}</strong>
               </div>
 
-              <div className="ml-auto flex items-center">
+              <div className="ml-auto flex items-center gap-2">
+                {/* Like button */}
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    // Could add a toast here
-                  }}
+                  onClick={handleLike}
+                  disabled={liking || !user}
+                  className={`flex items-center gap-1.5 font-medium border px-3 py-1.5 rounded-lg transition-all ${
+                    liked 
+                      ? 'border-red-400/50 bg-red-500/10 text-red-500 hover:bg-red-500/20' 
+                      : 'border-border hover:text-red-500 hover:border-red-400/50 hover:bg-red-500/10'
+                  }`}
+                  title={!user ? 'Log in to like' : liked ? 'Unlike' : 'Like'}
+                >
+                  <Heart className={`w-4 h-4 transition-transform ${liked ? 'fill-red-500 scale-110' : ''}`} />
+                  <span>{likeCount}</span>
+                </button>
+
+                <button
+                  onClick={handleShare}
                   className="flex items-center gap-2 hover:text-primary transition-colors font-medium border border-border px-3 py-1.5 rounded-lg hover:bg-accent"
                 >
-                  <Share2 className="w-4 h-4" />
-                  Share
+                  {sharecopied ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
+                  {sharecopied ? 'Copied!' : 'Share'}
                 </button>
               </div>
             </div>
@@ -293,4 +331,4 @@ const PostDetail = () => {
   );
 };
 
-export default PostDetail; 
+export default PostDetail;
