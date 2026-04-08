@@ -224,6 +224,23 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+
+            {/* Mobile Search — only on /posts */}
+            {user && location.pathname === '/posts' && (
+              <div className="relative mb-2">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-muted/50 text-sm placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-mono"
+                  placeholder="Search posts..."
+                />
+              </div>
+            )}
+
             {linksToUse.map((link) => (
               <NavLink
                 key={link.to}
@@ -242,13 +259,29 @@ const Navbar = () => {
               </NavLink>
             ))}
             {user ? (
-              <button
-                onClick={handleLogout}
-                className="flex w-full items-center px-3 py-2 rounded-md text-base font-medium text-destructive hover:bg-destructive/10"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </button>
+              <>
+                <button
+                  onClick={() => { navigate('/profile'); closeMenu(); }}
+                  className="flex w-full items-center px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  View Profile
+                </button>
+                <button
+                  onClick={() => { navigate('/dashboard'); closeMenu(); }}
+                  className="flex w-full items-center px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Dashboard
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center px-3 py-2 rounded-md text-base font-medium text-destructive hover:bg-destructive/10"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </button>
+              </>
             ) : (
               location.pathname !== '/login' && location.pathname !== '/signup' && (
                 <button
