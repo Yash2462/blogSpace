@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import PostsGrid from '../components/PostsGrid';
@@ -6,13 +7,16 @@ import { Loader2, AlertCircle, Search, ArrowUpDown } from 'lucide-react';
 
 const Posts = () => {
   const { user, loadingUser } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('latest');
-  const [urlQuery, setUrlQuery] = useState(new URLSearchParams(window.location.search).get('query') || '');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [urlQuery, setUrlQuery] = useState(new URLSearchParams(location.search).get('query') || '');
 
 
   useEffect(() => {
@@ -53,9 +57,9 @@ const Posts = () => {
     fetchInitialData();
   }, []);
 
-  // Effect to handle URL search parameter changes
+  // Effect to handle URL search parameter changes (uses location from react-router for proper reactivity)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
     const query = params.get('query') || '';
     if (query !== urlQuery) {
       setUrlQuery(query);
@@ -79,7 +83,7 @@ const Posts = () => {
       };
       fetchSearchResults();
     }
-  }, [window.location.search, urlQuery]);
+  }, [location.search, urlQuery]);
 
   useEffect(() => {
     const fetchPostsByCategory = async () => {
@@ -151,7 +155,7 @@ const Posts = () => {
     }
 
     return result;
-  }, [posts, searchQuery, sortBy]);
+  }, [posts, sortBy]);
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
@@ -189,18 +193,16 @@ const Posts = () => {
               placeholder="Search articles by title or content..."
               className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm transition-shadow shadow-sm hover:shadow-md"
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                // Debounce is handled by Navbar sync or can be added here if needed
-                // For now, let's rely on the Navbar's sync for URL changes
-              }}
+              onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  const params = new URLSearchParams(window.location.search);
-                  params.set('query', searchQuery);
-                  window.history.pushState({}, '', `/posts?${params.toString()}`);
-                  // Force effect trigger
-                  setUrlQuery(null); 
+                  const params = new URLSearchParams(location.search);
+                  if (searchQuery.trim()) {
+                    params.set('query', searchQuery.trim());
+                  } else {
+                    params.delete('query');
+                  }
+                  navigate(`/posts?${params.toString()}`, { replace: true });
                 }
               }}
             />
