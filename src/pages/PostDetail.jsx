@@ -5,7 +5,7 @@ import CommentsDrawer from '../components/CommentsDrawer';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check, ArrowLeft, Loader2, MessageSquare, Share2, Calendar, Clock, Heart } from 'lucide-react';
+import { Copy, Check, ArrowLeft, Loader2, MessageSquare, Share2, Calendar, Clock, Heart, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -195,6 +195,18 @@ const PostDetail = () => {
                   <Heart className={`w-4 h-4 transition-transform ${liked ? 'fill-red-500 scale-110' : ''}`} />
                   <span>{likeCount}</span>
                 </button>
+
+                {/* Edit button — only for the post author */}
+                {user && post.user?.id === user.id && (
+                  <button
+                    onClick={() => navigate(`/create-post?edit=${postId}`)}
+                    className="flex items-center gap-2 hover:text-primary transition-colors font-medium border border-border px-3 py-1.5 rounded-lg hover:bg-accent"
+                    title="Edit this post"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Edit
+                  </button>
+                )}
 
                 <button
                   onClick={handleShare}

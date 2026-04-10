@@ -4,9 +4,9 @@ import { formatDistanceToNow, isValid } from 'date-fns';
 import PropTypes from 'prop-types';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import { Heart, MessageSquare } from 'lucide-react';
+import { Heart, MessageSquare, Trash2 } from 'lucide-react';
 
-const PostsGrid = ({ posts = [] }) => {
+const PostsGrid = ({ posts = [], onDelete }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [postStats, setPostStats] = useState({});
@@ -184,6 +184,16 @@ const PostsGrid = ({ posts = [] }) => {
                     <MessageSquare className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
                     <span className="text-xs">{stats.comments}</span>
                   </button>
+
+                  {onDelete && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDelete(postId); }}
+                      className="flex items-center space-x-1 hover:text-destructive transition-colors group/btn ml-auto"
+                      title="Delete post"
+                    >
+                      <Trash2 className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

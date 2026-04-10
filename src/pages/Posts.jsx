@@ -17,6 +17,7 @@ const Posts = () => {
   const [sortBy, setSortBy] = useState('latest');
   const [searchQuery, setSearchQuery] = useState('');
   const [urlQuery, setUrlQuery] = useState(new URLSearchParams(location.search).get('query') || '');
+  const [isSearching, setIsSearching] = useState(false);
 
 
   useEffect(() => {
@@ -56,6 +57,26 @@ const Posts = () => {
 
     fetchInitialData();
   }, []);
+
+  // Debounced search: auto-trigger 500ms after user stops typing in the inline search bar
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmed = searchQuery.trim();
+      const params = new URLSearchParams(location.search);
+      const currentQuery = params.get('query') || '';
+      // Only fire if the typed value differs from the current URL query
+      if (trimmed !== currentQuery) {
+        const newParams = new URLSearchParams(location.search);
+        if (trimmed) {
+          newParams.set('query', trimmed);
+        } else {
+          newParams.delete('query');
+        }
+        navigate(`/posts?${newParams.toString()}`, { replace: true });
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Effect to handle URL search parameter changes (uses location from react-router for proper reactivity)
   useEffect(() => {
@@ -202,6 +223,11 @@ const Posts = () => {
                   } else {
                     params.delete('query');
                   }
+                  navigate(`/posts?${params.toString()}`, { replace: true });
+                } else if (e.key === 'Escape') {
+                  setSearchQuery('');
+                  const params = new URLSearchParams(location.search);
+                  params.delete('query');
                   navigate(`/posts?${params.toString()}`, { replace: true });
                 }
               }}

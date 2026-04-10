@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -10,6 +11,7 @@ import CreatePost from './pages/CreatePost';
 import Profile from './pages/Profile';
 import ScrollToTop from './components/ScrollToTop';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ToastProvider, useToast } from './contexts/ToastContext';
 import './App.css';
 import { jwtDecode } from 'jwt-decode';
 
@@ -39,7 +41,32 @@ function ProtectedRoute({ children }) {
 
 function AppRoutes() {
   const location = useLocation();
+  const { logout } = useAuth();
+  const { addToast } = useToast();
+  const navigate = useNavigate();
   const hideNavbar = location.pathname === '/login' || location.pathname === '/signup';
+
+  // Listen for global auth events dispatched by the axios interceptor
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+      navigate('/login');
+    };
+    const handleForbidden = (e) => {
+      addToast({
+        type: 'error',
+        message: e.detail?.message || 'You are not authorized to perform this action.',
+      });
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    window.addEventListener('auth:forbidden', handleForbidden);
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+      window.removeEventListener('auth:forbidden', handleForbidden);
+    };
+  }, [logout, navigate, addToast]);
+
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300 antialiased">
       {!hideNavbar && <Navbar />}
@@ -82,11 +109,13 @@ function App() {
   }
 
   return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

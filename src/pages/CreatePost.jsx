@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import ReactMarkdown from 'react-markdown';
 import { 
   ArrowLeft, Type, AlignLeft, Image as ImageIcon, FolderOpen, 
   Edit3, Eye, Loader2, Settings, CheckCircle2, AlertCircle, Info, ChevronDown, ChevronUp, Save
@@ -89,11 +90,17 @@ const CreatePost = () => {
     try {
       const response = await api.post(`/api/posts/user/${user.id}/category/${formData.categoryId}`, formData);
       setSnackbar({ open: true, message: 'Post created successfully!', severity: 'success' });
+      const postId = response.data?.data?.id || response.data?.data?.postId || response.data?.id;
       setFormData({ title: '', description: '', data: '', categoryId: '', postImage: '' });
       setIsDirty(false);
       
       setTimeout(() => {
-        navigate(`/post/${response.data.id || response.data.post?.id}`);
+        // Navigate to the correct post detail route
+        if (postId) {
+          navigate(`/posts/${postId}`);
+        } else {
+          navigate('/posts');
+        }
       }, 1500);
     } catch (error) {
       console.error('Error creating post:', error);
@@ -295,8 +302,10 @@ const CreatePost = () => {
                     </div>
                   )}
                   
-                  <div className="prose prose-lg dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-headings:tracking-tight whitespace-pre-wrap text-foreground">
-                    {formData.data || 'Your post content will appear here...'}
+                  <div className="prose dark:prose-invert max-w-none">
+                    <ReactMarkdown>
+                      {formData.data || 'Your post content will appear here...'}
+                    </ReactMarkdown>
                   </div>
                 </div>
               )}

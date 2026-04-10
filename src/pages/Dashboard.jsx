@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import PostsGrid from '../components/PostsGrid';
 import { Loader2, X, PlusSquare, User, BookOpen, Heart, TrendingUp } from 'lucide-react';
+import { useToast } from '../contexts/ToastContext';
 
 export const CommentsDialog = ({ open, onClose, postId }) => {
   const { user } = useAuth();
@@ -122,10 +123,12 @@ const StatCard = ({ icon, label, value, color }) => (
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addToast } = useToast();
   const [myPosts, setMyPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [totalLikesReceived, setTotalLikesReceived] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // postId to confirm delete
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -157,6 +160,27 @@ const Dashboard = () => {
 
     fetchDashboardData();
   }, [user]);
+
+  const handleDeleteRequest = (postId) => {
+    setDeleteConfirm(postId);
+  };
+
+  const handleDeleteConfirm = async () => {
+    const postId = deleteConfirm;
+    setDeleteConfirm(null);
+    // Optimistic update
+    setMyPosts((prev) => prev.filter((p) => (p.id || p._id || p.postId) !== postId));
+    try {
+      await api.delete(`/api/posts/${postId}`);
+      addToast({ type: 'success', title: 'Post Deleted', message: 'Your post was deleted successfully.' });
+    } catch (err) {
+      console.error('Failed to delete post:', err);
+      addToast({ type: 'error', title: 'Delete Failed', message: 'Could not delete the post. Please try again.' });
+      // Refetch to restore correct state
+      const res = await api.get(`/api/posts/user/${user.id}/posts`);
+      setMyPosts(res.data.data || res.data.posts || res.data || []);
+    }
+  };
 
   if (loading) {
     return (
@@ -229,7 +253,7 @@ const Dashboard = () => {
 
         {recentPosts.length > 0 ? (
           <>
-            <PostsGrid posts={recentPosts} />
+            <PostsGrid posts={recentPosts} onDelete={handleDeleteRequest} />
             {myPosts.length > 3 && (
               <div className="flex justify-center mt-6">
                 <button
@@ -255,6 +279,30 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="bg-card w-full max-w-sm rounded-2xl shadow-xl border border-border p-6">
+            <h3 className="text-lg font-bold text-foreground mb-2">Delete Post?</h3>
+            <p className="text-sm text-muted-foreground mb-6">This action cannot be undone. The post will be permanently removed.</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 rounded-lg bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

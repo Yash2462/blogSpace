@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import api from '../api/axios';
+import { formatDistanceToNow, isValid } from 'date-fns';
 import { 
   BookOpen, 
   TerminalSquare, 
   Network, 
   LayoutTemplate,
   ArrowRight,
-  Code2
+  Code2,
+  Clock,
+  Loader2
 } from 'lucide-react';
 
 const FEATURE_CARDS = [
@@ -41,7 +45,37 @@ const FEATURE_CARDS = [
   }
 ];
 
+const stripMarkdown = (text) => {
+  if (!text) return '';
+  return text
+    .replace(/[#*`>~]/g, '')
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+    .trim();
+};
+
+const formatDate = (dateString) => {
+  if (!dateString || !isValid(new Date(dateString))) return '';
+  return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+};
+
 export default function Landing() {
+  const [recentPosts, setRecentPosts] = useState([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+
+  useEffect(() => {
+    api.get('/api/posts')
+      .then((res) => {
+        const allPosts = res.data.data || res.data.posts || res.data || [];
+        // Sort by latest and take the top 3
+        const sorted = [...allPosts].sort(
+          (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+        );
+        setRecentPosts(sorted.slice(0, 3));
+      })
+      .catch(() => setRecentPosts([]))
+      .finally(() => setLoadingPosts(false));
+  }, []);
+
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)] w-full">
       {/* Hero Section */}
@@ -118,6 +152,81 @@ export default function Landing() {
                 </div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Articles Section */}
+      <section className="w-full py-20 border-t border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-bold tracking-tight">Latest Articles</h2>
+            <p className="text-muted-foreground mt-2">Fresh reads from our community of writers.</p>
+          </div>
+
+          {loadingPosts ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="rounded-2xl border border-border bg-card p-6 animate-pulse">
+                  <div className="h-4 bg-muted rounded w-1/3 mb-4" />
+                  <div className="h-6 bg-muted rounded w-3/4 mb-3" />
+                  <div className="h-4 bg-muted rounded w-full mb-2" />
+                  <div className="h-4 bg-muted rounded w-5/6" />
+                </div>
+              ))}
+            </div>
+          ) : recentPosts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {recentPosts.map((post, index) => {
+                const postId = post.id || post._id || post.postId;
+                const wordCount = (post.data || post.content || '').split(' ').length;
+                const readTime = Math.max(1, Math.ceil(wordCount / 200));
+                return (
+                  <motion.div
+                    key={postId}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg hover:border-primary/30"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">
+                        {post.category?.name || 'Uncategorized'}
+                      </span>
+                      <span className="flex items-center text-xs text-muted-foreground">
+                        <Clock className="w-3 h-3 mr-1" />{readTime} min read
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                      {post.title || 'Untitled'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-3 flex-grow leading-relaxed">
+                      {stripMarkdown(post.data || post.content) || 'No preview available.'}
+                    </p>
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                      <span className="text-xs text-muted-foreground">
+                        By {post.user?.username || 'Anonymous'} · {formatDate(post.createdAt)}
+                      </span>
+                    </div>
+                    {/* Overlay CTA for logged-out users */}
+                    <Link
+                      to="/signup"
+                      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 group-hover:bg-primary/5 transition-all flex items-center justify-center"
+                      aria-label={`Read ${post.title}`}
+                    />
+                  </motion.div>
+                );
+              })}
+            </div>
+          ) : null}
+
+          <div className="mt-10 text-center">
+            <Link
+              to="/signup"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors shadow"
+            >
+              Read All Articles <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
