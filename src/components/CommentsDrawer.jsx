@@ -16,6 +16,7 @@ const CommentsDrawer = ({ open, onClose, postId, onCommentAdded }) => {
     if (open && postId) {
       fetchComments();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, postId]);
 
   const fetchComments = async () => {

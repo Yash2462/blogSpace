@@ -14,7 +14,27 @@ import ScrollToTop from './components/ScrollToTop';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider, useToast } from './contexts/ToastContext';
 import './App.css';
-import { jwtDecode } from 'jwt-decode';
+
+// Check system preference or localStorage for initial theme
+const getInitialTheme = () => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const storedPrefs = window.localStorage.getItem('color-theme');
+    if (typeof storedPrefs === 'string') {
+      return storedPrefs;
+    }
+    const userMedia = window.matchMedia('(prefers-color-scheme: dark)');
+    if (userMedia.matches) {
+      return 'dark';
+    }
+  }
+  return 'light';
+};
+
+// Add the class to html element immediately on load to prevent flash
+if (typeof window !== 'undefined') {
+  const theme = getInitialTheme();
+  if (theme === 'dark') document.documentElement.classList.add('dark');
+}
 
 // Layout wrapper component
 function PageWrapper({ children }) {
@@ -88,26 +108,6 @@ function AppRoutes() {
 }
 
 function App() {
-  // Check system preference or localStorage for initial theme
-  const getInitialTheme = () => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const storedPrefs = window.localStorage.getItem('color-theme');
-      if (typeof storedPrefs === 'string') {
-        return storedPrefs;
-      }
-      const userMedia = window.matchMedia('(prefers-color-scheme: dark)');
-      if (userMedia.matches) {
-        return 'dark';
-      }
-    }
-    return 'light';
-  };
-
-  // Add the class to html element immediately on load to prevent flash
-  if (typeof window !== 'undefined') {
-    const theme = getInitialTheme();
-    if (theme === 'dark') document.documentElement.classList.add('dark');
-  }
 
   return (
     <ToastProvider>

@@ -1,14 +1,13 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { useAuth } from '../contexts/AuthContext';
+
 import PostsGrid from '../components/PostsGrid';
 import { Loader2, AlertCircle, Search, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const PAGE_SIZE = 9;
 
 const Posts = () => {
-  const { user, loadingUser } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
@@ -100,7 +99,7 @@ const Posts = () => {
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, location.search, navigate]);
 
   // Effect to handle URL search parameter changes
   useEffect(() => {
@@ -133,7 +132,14 @@ const Posts = () => {
     }
   }, [location.search, urlQuery]);
 
+  const isInitialMount = useRef(true);
+
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     const fetchPostsByCategory = async () => {
       if (selectedCategory === 'All') {
         setCurrentPage(0);
@@ -159,7 +165,7 @@ const Posts = () => {
       }
     };
 
-    if (!loading) fetchPostsByCategory();
+    fetchPostsByCategory();
   }, [selectedCategory, categories]);
 
   const handleCategoryClick = (categoryName) => {

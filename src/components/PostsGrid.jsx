@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow, isValid } from 'date-fns';
 import PropTypes from 'prop-types';
@@ -26,25 +26,29 @@ const PostsGrid = ({ posts = [], onDelete }) => {
 
     const fetchAllStats = async () => {
       if (posts.length === 0) return;
-      const newStats = {};
-      for (const post of posts) {
-        const postId = post._id || post.id || post.postId;
-        if (postId && !postStats[postId]) {
-          try {
-            const response = await api.get(`/api/posts/${postId}/stats`);
-            newStats[postId] = response.data.data || { likes: 0, comments: 0 };
-          } catch (error) {
-            console.error(`Failed to fetch stats for post ${postId}`, error);
-            newStats[postId] = { likes: 0, comments: 0 };
-          }
-        }
-      }
-      if (Object.keys(newStats).length > 0) {
-        setPostStats((prev) => ({ ...prev, ...newStats }));
+
+      // Fetch stats for all posts concurrently instead of sequentially
+      const entries = await Promise.all(
+        posts
+          .map((post) => post._id || post.id || post.postId)
+          .filter((postId) => postId && !postStats[postId])
+          .map(async (postId) => {
+            try {
+              const response = await api.get(`/api/posts/${postId}/stats`);
+              return [postId, response.data.data || { likes: 0, comments: 0 }];
+            } catch {
+              return [postId, { likes: 0, comments: 0 }];
+            }
+          })
+      );
+
+      if (entries.length > 0) {
+        setPostStats((prev) => ({ ...prev, ...Object.fromEntries(entries) }));
       }
     };
 
     fetchAllStats();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts, user]);
 
   const handleLikeClick = async (e, postId) => {

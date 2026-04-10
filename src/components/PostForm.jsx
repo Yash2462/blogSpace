@@ -102,7 +102,7 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
         categoryId,
         postImage,
       });
-    } catch (err) {
+    } catch {
       setError('Failed to create post. Please try again.');
     }
   };
@@ -300,7 +300,7 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
                               <span className="italic opacity-80">{children}</span>
                             </div>
                           ),
-                          code({node, inline, className, children, ...props}) {
+                          code({inline, className, children, ...props}) {
                             const match = /language-(\w+)/.exec(className || '');
                             return !inline && match ? (
                               <CodeBlock

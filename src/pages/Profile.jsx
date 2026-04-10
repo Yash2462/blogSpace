@@ -163,7 +163,7 @@ const EditProfileModal = ({ user, onClose, onSaved }) => {
 // Profile Page
 // ────────────────────────────────────────────────────────────
 const Profile = () => {
-  const { user, login } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
   const [createdPosts, setCreatedPosts] = useState([]);

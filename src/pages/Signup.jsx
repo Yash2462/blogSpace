@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 

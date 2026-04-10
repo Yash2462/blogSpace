@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Home, ArrowLeft, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';

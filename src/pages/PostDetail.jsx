@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import CommentsDrawer from '../components/CommentsDrawer';
@@ -283,7 +283,7 @@ const PostDetail = () => {
                     <span className="italic opacity-80">{children}</span>
                   </div>
                 ),
-                code({node, inline, className, children, ...props}) {
+                code({inline, className, children, ...props}) {
                   const match = /language-(\w+)/.exec(className || '');
                   return !inline && match ? (
                     <CodeBlock
