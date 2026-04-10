@@ -3,7 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import PostsGrid from '../components/PostsGrid';
-import { Loader2, AlertCircle, Search, ArrowUpDown } from 'lucide-react';
+import { Loader2, AlertCircle, Search, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const PAGE_SIZE = 9;
 
 const Posts = () => {
   const { user, loadingUser } = useAuth();
@@ -17,8 +19,31 @@ const Posts = () => {
   const [sortBy, setSortBy] = useState('latest');
   const [searchQuery, setSearchQuery] = useState('');
   const [urlQuery, setUrlQuery] = useState(new URLSearchParams(location.search).get('query') || '');
-  const [isSearching, setIsSearching] = useState(false);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
 
+  const isFiltered = !!(urlQuery || selectedCategory !== 'All');
+
+  // Helper to fetch paginated posts
+  const fetchPage = async (page) => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/api/posts?page=${page}&size=${PAGE_SIZE}`);
+      const wrapper = res.data.data || {};
+      const items = wrapper.data || [];
+      setPosts(items);
+      setTotalPages(wrapper.totalPages ?? 1);
+      setTotalElements(wrapper.totalElements ?? items.length);
+      setCurrentPage(wrapper.currentPage ?? page);
+    } catch (err) {
+      console.error('Error fetching posts:', err);
+      setAlert({ type: 'error', message: 'Failed to load posts. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -39,10 +64,9 @@ const Posts = () => {
           const searchRes = await api.get(`/api/posts/search?query=${encodeURIComponent(query)}`);
           const postsData = searchRes.data.posts || searchRes.data.data || searchRes.data || [];
           setPosts(postsData);
+          setTotalPages(1);
         } else {
-          const postRes = await api.get('/api/posts');
-          const postsData = postRes.data.posts || postRes.data.data || postRes.data || [];
-          setPosts(postsData);
+          await fetchPage(0);
         }
       } catch (error) {
         console.error('Error fetching initial data:', error);
@@ -78,23 +102,26 @@ const Posts = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Effect to handle URL search parameter changes (uses location from react-router for proper reactivity)
+  // Effect to handle URL search parameter changes
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const query = params.get('query') || '';
     if (query !== urlQuery) {
       setUrlQuery(query);
       setSearchQuery(query);
+      setCurrentPage(0);
       
       const fetchSearchResults = async () => {
         setLoading(true);
         try {
-          const endpoint = query 
-            ? `/api/posts/search?query=${encodeURIComponent(query)}`
-            : '/api/posts';
-          const res = await api.get(endpoint);
-          const postsData = res.data.posts || res.data.data || res.data || [];
-          setPosts(postsData);
+          if (query) {
+            const res = await api.get(`/api/posts/search?query=${encodeURIComponent(query)}`);
+            const postsData = res.data.posts || res.data.data || res.data || [];
+            setPosts(postsData);
+            setTotalPages(1);
+          } else {
+            await fetchPage(0);
+          }
         } catch (err) {
           console.error('Search error:', err);
           setPosts([]);
@@ -109,21 +136,8 @@ const Posts = () => {
   useEffect(() => {
     const fetchPostsByCategory = async () => {
       if (selectedCategory === 'All') {
-        setLoading(true);
-        try {
-          const res = await api.get('/api/posts');
-          const postsData = res.data.posts || res.data.data || res.data || [];
-          setPosts(postsData);
-        } catch (error) {
-          console.error('Error fetching all posts:', error);
-          setAlert({
-            type: 'error',
-            message: 'Failed to fetch posts. Please try again later.',
-          });
-          setPosts([]);
-        } finally {
-          setLoading(false);
-        }
+        setCurrentPage(0);
+        await fetchPage(0);
         return;
       }
 
@@ -135,12 +149,10 @@ const Posts = () => {
         const res = await api.get(`/api/posts/category/${selected.id}/posts`);
         const postsData = res.data.posts || res.data.data || res.data || [];
         setPosts(postsData);
+        setTotalPages(1);
       } catch (error) {
         console.error(`Error fetching posts for category ${selectedCategory}:`, error);
-        setAlert({
-          type: 'error',
-          message: `Failed to fetch posts for ${selectedCategory}.`,
-        });
+        setAlert({ type: 'error', message: `Failed to fetch posts for ${selectedCategory}.` });
         setPosts([]);
       } finally {
         setLoading(false);
@@ -281,6 +293,32 @@ const Posts = () => {
               </div>
             ) : (
               <PostsGrid posts={filteredAndSortedPosts} />
+            )}
+
+            {/* Pagination controls — only shown for non-filtered browsing */}
+            {!isFiltered && totalPages > 1 && (
+              <div className="mt-10 flex items-center justify-center gap-3">
+                <button
+                  onClick={() => fetchPage(currentPage - 1)}
+                  disabled={currentPage === 0}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Prev
+                </button>
+
+                <span className="text-sm text-muted-foreground font-mono">
+                  Page {currentPage + 1} of {totalPages}
+                  <span className="ml-2 opacity-60">({totalElements} posts)</span>
+                </span>
+
+                <button
+                  onClick={() => fetchPage(currentPage + 1)}
+                  disabled={currentPage >= totalPages - 1}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             )}
           </div>
         )}
