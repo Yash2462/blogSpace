@@ -112,19 +112,19 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="bg-card w-full max-w-4xl rounded-xl shadow-lg border border-border flex flex-col max-h-[95vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm">
+      <div className="bg-card w-full max-w-4xl rounded-sm shadow-2xl border border-border flex flex-col max-h-[95vh] overflow-hidden">
         
         {/* Header */}
-        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-border">
-          <h2 className="text-xl font-bold text-foreground">
-            {post ? 'Edit Post' : 'Create New Post'}
+        <div className="flex justify-between items-center p-4 border-b border-border bg-muted/50">
+          <h2 className="text-sm font-mono font-bold text-foreground uppercase tracking-widest flex items-center">
+            <span className="text-primary mr-2">█</span> {post ? 'edit_post.md' : 'new_post.md'}
           </h2>
           <button 
             onClick={onClose} 
-            className="p-2 -mr-2 text-muted-foreground hover:bg-muted hover:text-foreground rounded-full transition-colors"
+            className="p-1 px-2 text-muted-foreground hover:text-foreground hover:bg-muted text-xs font-mono border border-transparent hover:border-border transition-all"
           >
-            <X className="w-5 h-5" />
+            [X]
           </button>
         </div>
 
@@ -137,46 +137,46 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
           )}
           
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-foreground block">
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono text-muted-foreground block uppercase tracking-wider">
                 Title <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className={`w-full px-4 py-2 rounded-md border bg-background/50 focus:bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none ${
+                className={`w-full px-3 py-2 rounded-none border focus:border-foreground bg-background font-mono text-sm transition-colors outline-none ${
                   !title && error ? 'border-red-500' : 'border-input'
                 }`}
-                placeholder="Enter title..."
+                placeholder="> Enter post title..."
               />
               {!title && error && (
-                <p className="text-xs text-red-500 mt-1">Title is required</p>
+                <p className="text-xs font-mono text-red-500 mt-1">Error: Title is required</p>
               )}
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-foreground block">
-                Image URL
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono text-muted-foreground block uppercase tracking-wider">
+                Image_URL
               </label>
               <input
                 type="url"
                 value={postImage}
                 onChange={(e) => setPostImage(e.target.value)}
-                className="w-full px-4 py-2 rounded-md border border-input bg-background/50 focus:bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
-                placeholder="https://example.com/image.jpg"
+                className="w-full px-3 py-2 border rounded-none border-input bg-background font-mono text-sm focus:border-foreground transition-colors outline-none"
+                placeholder="> https://example.com/image.jpg"
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-foreground block">
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono text-muted-foreground block uppercase tracking-wider">
                 Category <span className="text-red-500">*</span>
               </label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
                 disabled={categoriesLoading}
-                className={`w-full px-4 py-2 rounded-md border bg-background/50 focus:bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none ${
+                className={`w-full px-3 py-2 border rounded-none bg-background font-mono text-sm focus:border-foreground transition-colors outline-none ${
                   !categoryId && error ? 'border-red-500' : 'border-input'
                 }`}
               >
@@ -201,29 +201,29 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
             </div>
 
             {/* Markdown Tabs */}
-            <div className="mt-6">
-              <div className="flex border-b border-border">
+            <div className="mt-8 border border-border bg-card">
+              <div className="flex border-b border-border bg-muted/30">
                 <button
                   type="button"
                   onClick={() => setActiveTab(0)}
-                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  className={`px-4 py-2 text-xs font-mono uppercase tracking-widest transition-colors ${
                     activeTab === 0
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                      ? 'bg-card text-foreground border-b-2 border-b-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
-                  Write
+                  [Write]
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab(1)}
-                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  className={`px-4 py-2 text-xs font-mono uppercase tracking-widest transition-colors ${
                     activeTab === 1
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                      ? 'bg-card text-foreground border-b-2 border-b-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
-                  Preview
+                  [Preview]
                 </button>
               </div>
 
@@ -333,11 +333,11 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 sm:p-6 border-t border-border bg-card flex justify-end gap-3 mt-auto">
+        <div className="p-4 border-t border-border bg-muted/20 flex justify-end gap-3 mt-auto">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-md font-medium text-foreground bg-background border border-input hover:bg-accent transition-colors"
+            className="px-4 py-2 font-mono text-sm uppercase tracking-wide text-muted-foreground bg-background border border-input hover:border-foreground hover:text-foreground transition-colors rounded-none"
           >
             Cancel
           </button>
@@ -345,14 +345,14 @@ const PostForm = ({ open, onClose, onSubmit, post, loading = false }) => {
             type="button"
             onClick={handleSubmit}
             disabled={loading || !title || !content || !categoryId}
-            className="flex items-center px-4 py-2 rounded-md font-medium text-primary-foreground bg-primary hover:bg-primary/90 disabled:opacity-50 transition-colors"
+            className="flex items-center px-6 py-2 font-mono text-sm uppercase font-bold tracking-widest text-background bg-foreground hover:bg-foreground/90 disabled:opacity-50 transition-colors rounded-none"
           >
             {loading ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {post ? 'Updating...' : 'Creating...'}</>
             ) : post ? (
-              'Update Post'
+              'Update'
             ) : (
-              'Create Post'
+              'Publish'
             )}
           </button>
         </div>

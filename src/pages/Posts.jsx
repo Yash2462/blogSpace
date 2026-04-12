@@ -14,7 +14,9 @@ const Posts = () => {
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState(
+    new URLSearchParams(location.search).get('category') || 'All'
+  );
   const [sortBy, setSortBy] = useState('latest');
   const [searchQuery, setSearchQuery] = useState('');
   const [urlQuery, setUrlQuery] = useState(new URLSearchParams(location.search).get('query') || '');

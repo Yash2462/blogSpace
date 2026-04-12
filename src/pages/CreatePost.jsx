@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import ReactMarkdown from 'react-markdown';
+import MDEditor from '@uiw/react-md-editor';
 import { 
   ArrowLeft, Type, AlignLeft, Image as ImageIcon, FolderOpen, 
-  Edit3, Eye, Loader2, Settings, CheckCircle2, AlertCircle, Info, ChevronDown, ChevronUp, Save
+  Edit3, Eye, Loader2, Settings, CheckCircle2, AlertCircle, Info, ChevronDown, ChevronUp, Save, Upload
 } from 'lucide-react';
 
 const publishingTips = [
@@ -48,8 +49,10 @@ const CreatePost = () => {
   });
 
   const [categories, setCategories] = useState([]);
+  const [selectedMainCategory, setSelectedMainCategory] = useState('');
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [error, setError] = useState('');
   const [showTips, setShowTips] = useState(true);
@@ -76,6 +79,53 @@ const CreatePost = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setIsDirty(true);
     if (error) setError('');
+  };
+
+  const handleEditorChange = (value) => {
+    setFormData(prev => ({ ...prev, data: value || '' }));
+    setIsDirty(true);
+    if (error) setError('');
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    const uploadData = new FormData();
+    uploadData.append('image', file);
+
+    try {
+      const response = await api.post('/api/upload', uploadData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setFormData(prev => ({ ...prev, postImage: response.data.url }));
+      setIsDirty(true);
+      setSnackbar({ open: true, message: 'Image uploaded successfully!', severity: 'success' });
+    } catch (err) {
+      console.error('Image upload failed', err);
+      setSnackbar({ open: true, message: 'Image upload failed', severity: 'error' });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleEditorImageDrop = async (file) => {
+    const uploadData = new FormData();
+    uploadData.append('image', file);
+    try {
+      const response = await api.post('/api/upload', uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const imageUrl = response.data.url;
+      setFormData(prev => ({ ...prev, data: prev.data + `\n\n![Uploaded Image](${imageUrl} "width=100%")\n` }));
+      setIsDirty(true);
+      setSnackbar({ open: true, message: 'Image added to post content!', severity: 'success' });
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Image upload to editor failed', severity: 'error' });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -114,7 +164,12 @@ const CreatePost = () => {
     }
   };
 
-  const selectedCategory = categories.find(cat => String(cat.id) === String(formData.categoryId));
+  const mainCategories = categories.filter(cat => !cat.parentCategory);
+  const subCategories = selectedMainCategory 
+      ? categories.filter(cat => cat.parentCategory?.id === parseInt(selectedMainCategory))
+      : [];
+
+  const selectedCategoryObj = categories.find(cat => String(cat.id) === String(formData.categoryId));
   const wordCount = formData.data ? formData.data.split(/\s+/).filter(word => word.length > 0).length : 0;
   const charCount = formData.data ? formData.data.length : 0;
   const readingTime = Math.max(1, Math.ceil(wordCount / 200));
@@ -222,19 +277,119 @@ const CreatePost = () => {
                     />
                   </div>
 
-                  {/* Content Field */}
+                  {/* Cover Photo Field in Main Form */}
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-foreground block">
-                      Post Content <span className="text-red-500">*</span>
+                      Cover Photo
                     </label>
-                    <textarea
-                      name="data"
-                      value={formData.data}
-                      onChange={handleChange}
-                      rows={12}
-                      placeholder="Write your post content here... Use paragraphs to organize your thoughts."
-                      className="w-full px-4 py-3 rounded-lg border border-input bg-background/50 text-foreground focus:bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none resize-y min-h-[250px]"
-                    />
+                    <div className="flex items-center justify-center w-full">
+                      <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-border border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors relative overflow-hidden group">
+                        {formData.postImage ? (
+                          <>
+                            <img src={formData.postImage} alt="Cover" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
+                            <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+                               <Edit3 className="w-6 h-6 text-foreground drop-shadow-md z-10" />
+                               <p className="mt-2 text-sm text-foreground font-semibold drop-shadow-md z-10">Change Cover Photo</p>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                             {isUploadingImage ? (
+                               <><Loader2 className="w-8 h-8 mb-3 text-muted-foreground animate-spin" /><p className="text-sm text-muted-foreground">Uploading...</p></>
+                             ) : (
+                               <><Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                               <p className="mb-2 text-sm font-semibold text-muted-foreground">Click to upload cover photo</p>
+                               <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB</p></>
+                             )}
+                          </div>
+                        )}
+                        
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          disabled={isUploadingImage}
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Content Field replaced with MD Editor */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-bold text-foreground block">
+                        Post Content <span className="text-red-500">*</span>
+                        <span className="ml-2 text-xs font-normal text-muted-foreground hidden sm:inline">(Drag & Drop images here)</span>
+                      </label>
+                      
+                      <label className="cursor-pointer text-xs flex items-center px-3 py-1.5 bg-muted hover:bg-muted/80 text-foreground rounded-md transition-colors border border-border">
+                        {isUploadingImage ? <Loader2 className="w-3 h-3 mr-1.5 animate-spin"/> : <Upload className="w-3 h-3 mr-1.5"/>}
+                        Upload Image
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleEditorImageDrop(file);
+                            e.target.value = null; // reset to allow same file upload again
+                          }}
+                          disabled={isUploadingImage}
+                        />
+                      </label>
+                    </div>
+
+                    <div 
+                      onDragOver={(e) => e.preventDefault()}
+                      onDragEnter={(e) => e.preventDefault()}
+                      onPaste={(e) => {
+                        const file = e.clipboardData?.files?.[0];
+                        if (file && file.type.startsWith('image/')) {
+                            e.preventDefault();
+                            handleEditorImageDrop(file);
+                        }
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const file = e.dataTransfer?.files?.[0];
+                        if (file && file.type.startsWith('image/')) {
+                            handleEditorImageDrop(file);
+                        }
+                      }}
+                      className="border border-input rounded-lg overflow-hidden group relative"
+                    >
+                      <div data-color-mode="light" className="dark:hidden">
+                         <MDEditor
+                           value={formData.data}
+                           onChange={handleEditorChange}
+                           height={450}
+                           className="!border-none !bg-background"
+                           components={{
+                             img: ({ src, alt, title }) => {
+                               let width = '100%';
+                               if (title && title.startsWith('width=')) width = title.replace('width=', '');
+                               return <img src={src} alt={alt} style={{ width, margin: '10px auto' }} className="rounded-lg shadow-sm" />;
+                             }
+                           }}
+                         />
+                      </div>
+                      <div data-color-mode="dark" className="hidden dark:block">
+                         <MDEditor
+                           value={formData.data}
+                           onChange={handleEditorChange}
+                           height={450}
+                           className="!border-none !bg-background"
+                           components={{
+                             img: ({ src, alt, title }) => {
+                               let width = '100%';
+                               if (title && title.startsWith('width=')) width = title.replace('width=', '');
+                               return <img src={src} alt={alt} style={{ width, margin: '10px auto' }} className="rounded-lg shadow-sm" />;
+                             }
+                           }}
+                         />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Action Buttons */}
@@ -277,10 +432,10 @@ const CreatePost = () => {
                     </button>
                   </div>
                   
-                  {selectedCategory && (
+                  {selectedCategoryObj && (
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary mb-6">
                       <FolderOpen className="w-3.5 h-3.5 mr-1" />
-                      {selectedCategory.name}
+                      {selectedCategoryObj.name}
                     </span>
                   )}
                   
@@ -325,39 +480,45 @@ const CreatePost = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">
-                    Category <span className="text-red-500">*</span>
+                    Main Category <span className="text-red-500">*</span>
                   </label>
                   <select
-                    value={formData.categoryId}
-                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                    value={selectedMainCategory}
+                    onChange={(e) => {
+                      setSelectedMainCategory(e.target.value);
+                      setFormData({ ...formData, categoryId: e.target.value });
+                    }}
                     disabled={categoriesLoading}
-                    className={`w-full px-3 py-2 rounded-lg border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary ${validation.category ? 'border-border' : 'border-red-500'}`}
+                    className="w-full px-3 py-2 rounded-lg border bg-background text-foreground text-sm border-border focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    <option value="" disabled>Select a category</option>
-                    {categories.map(cat => (
+                    <option value="" disabled>Select a main category</option>
+                    {mainCategories.length === 0 && <option value="" disabled>No categories available</option>}
+                    {mainCategories.map(cat => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
                   </select>
                 </div>
+
+                {subCategories.length > 0 && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="text-sm font-medium text-foreground">
+                      Subcategory
+                    </label>
+                    <select
+                      value={formData.categoryId}
+                      onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                      disabled={categoriesLoading}
+                      className={`w-full px-3 py-2 rounded-lg border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary ${validation.category ? 'border-border' : 'border-red-500'}`}
+                    >
+                      <option value={selectedMainCategory}>None (Use Main Category)</option>
+                      {subCategories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">
-                    Featured Image URL
-                  </label>
-                  <input
-                    type="url"
-                    name="postImage"
-                    value={formData.postImage}
-                    onChange={handleChange}
-                    placeholder="https://example.com/image.jpg"
-                    className={`w-full px-3 py-2 rounded-lg border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary ${formData.postImage ? 'border-green-500' : 'border-border'}`}
-                  />
-                  {formData.postImage && (
-                    <div className="mt-2 h-24 rounded overflow-hidden border border-border bg-muted">
-                      <img src={formData.postImage} alt="Feature preview" className="w-full h-full object-cover" onError={(e) => e.target.style.display='none'} />
-                    </div>
-                  )}
-                </div>
+                {/* Cover Photo Input removed from Sidebar to Main Form */}
               </div>
             </div>
 

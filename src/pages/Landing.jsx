@@ -4,10 +4,10 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { formatDistanceToNow, isValid } from 'date-fns';
-import { 
-  BookOpen, 
-  TerminalSquare, 
-  Network, 
+import {
+  BookOpen,
+  TerminalSquare,
+  Network,
   LayoutTemplate,
   ArrowRight,
   Code2,
@@ -18,6 +18,7 @@ import {
 const FEATURE_CARDS = [
   {
     title: 'DSA Guidelines',
+    dbCategory: 'DSA',
     description: 'Master Data Structures and Algorithms with curated notes and problems.',
     icon: <TerminalSquare className="w-8 h-8 text-orange-500" />,
     bgColor: 'bg-orange-500/10',
@@ -91,26 +92,26 @@ export default function Landing() {
             <span className="flex h-2 w-2 rounded-full bg-primary mr-2"></span>
             Welcome to the ultimate tech blog
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-foreground">
             Master Tech Concepts By <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-indigo-500 to-purple-500">
               Intuition & Logic
             </span>
           </h1>
-          
+
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             The best place to learn DSA, System Design, Core CS Fundamentals, and explore awesome articles on software engineering.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Link 
-              to="/signup" 
+            <Link
+              to="/signup"
               className="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-full sm:w-auto"
             >
               Start Reading <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
-            <Link 
+            <Link
               to="/login"
               className="inline-flex h-12 items-center justify-center rounded-lg border border-border bg-background px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-full sm:w-auto"
             >
@@ -130,28 +131,29 @@ export default function Landing() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {FEATURE_CARDS.map((card, index) => (
-              <motion.div
-                key={card.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                className={`group relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md ${card.borderColor}`}
-              >
-                <div className={`mb-6 inline-flex p-3 rounded-xl ${card.bgColor}`}>
-                  {card.icon}
-                </div>
-                <h3 className="text-xl font-semibold mb-2 text-card-foreground">
-                  {card.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {card.description}
-                </p>
-                
-                {/* Visual Arrow appears on hover */}
-                <div className="absolute bottom-6 right-6 opacity-0 translate-x-4 transition-all group-hover:opacity-100 group-hover:translate-x-0">
-                  <ArrowRight className="w-5 h-5 text-muted-foreground" />
-                </div>
-              </motion.div>
+              <Link to={`/posts?category=${encodeURIComponent(card.dbCategory || card.title)}`} key={card.title}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  className={`group relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md h-full ${card.borderColor}`}
+                >
+                  <div className={`mb-6 inline-flex p-3 rounded-xl ${card.bgColor}`}>
+                    {card.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2 text-card-foreground">
+                    {card.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {card.description}
+                  </p>
+
+                  {/* Visual Arrow appears on hover */}
+                  <div className="absolute bottom-6 right-6 opacity-0 translate-x-4 transition-all group-hover:opacity-100 group-hover:translate-x-0">
+                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>

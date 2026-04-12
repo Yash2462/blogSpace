@@ -59,12 +59,19 @@ const PostDetail = () => {
   const [likeCount, setLikeCount] = useState(0);
   const [liking, setLiking] = useState(false);
 
+  // Fetch the current post and the full post list to enable Prev/Next navigation
+  const [postsList, setPostsList] = useState([]);
+  const [prevPostId, setPrevPostId] = useState(null);
+  const [nextPostId, setNextPostId] = useState(null);
+
   useEffect(() => {
-    const fetchPost = async () => {
+    const fetchData = async () => {
       try {
-        // Directly fetch the specific post by ID — much more efficient
-        const res = await api.get(`/api/posts/${postId}`);
-        const postData = res.data.data || res.data.post || res.data;
+        const [postRes, listRes] = await Promise.all([
+          api.get(`/api/posts/${postId}`),
+          api.get('/api/posts')
+        ]);
+        const postData = postRes.data.data || postRes.data.post || postRes.data;
         if (postData && (postData.id || postData._id || postData.postId)) {
           setPost(postData);
           const likedByList = postData.likedBy || [];
@@ -75,19 +82,23 @@ const PostDetail = () => {
         } else {
           setError('Post not found');
         }
-      } catch (err) {
-        console.error('Error fetching post:', err);
-        if (err.response?.status === 404) {
-          setError('Post not found');
-        } else {
-          setError('Failed to load post');
+        const listData = listRes.data.data || listRes.data.posts || listRes.data;
+        const sorted = (Array.isArray(listData) ? listData : []).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        setPostsList(sorted);
+        const currentId = postData.id || postData._id || postData.postId;
+        const idx = sorted.findIndex(p => (p.id || p._id || p.postId) === currentId);
+        if (idx !== -1) {
+          setPrevPostId(idx > 0 ? (sorted[idx - 1].id || sorted[idx - 1]._id || sorted[idx - 1].postId) : null);
+          setNextPostId(idx < sorted.length - 1 ? (sorted[idx + 1].id || sorted[idx + 1]._id || sorted[idx + 1].postId) : null);
         }
+      } catch (err) {
+        console.error('Error fetching post or list:', err);
+        setError('Failed to load post');
       } finally {
         setLoading(false);
       }
     };
-
-    fetchPost();
+    fetchData();
   }, [postId, user]);
 
   const handleShare = () => {
@@ -144,13 +155,33 @@ const PostDetail = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Navigation */}
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Posts
-        </button>
+        <div className="flex items-center mb-6 space-x-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </button>
+          {prevPostId && (
+            <button
+              onClick={() => navigate(`/posts/${prevPostId}`)}
+              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Prev
+            </button>
+          )}
+          {nextPostId && (
+            <button
+              onClick={() => navigate(`/posts/${nextPostId}`)}
+              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              Next
+              <ArrowLeft className="w-4 h-4 ml-1 transform rotate-180" />
+            </button>
+          )}
+        </div>
 
         {/* Post Card */}
         <div className="bg-card border border-border shadow-sm rounded-3xl overflow-hidden p-6 sm:p-10 md:p-12">
@@ -283,6 +314,11 @@ const PostDetail = () => {
                     <span className="italic opacity-80">{children}</span>
                   </div>
                 ),
+                img: ({ src, alt, title }) => {
+                  let width = '100%';
+                  if (title && title.startsWith('width=')) width = title.replace('width=', '');
+                  return <img src={src} alt={alt} style={{ width, margin: '20px auto' }} className="rounded-lg shadow-md border border-border" />;
+                },
                 code({inline, className, children, ...props}) {
                   const match = /language-(\w+)/.exec(className || '');
                   return !inline && match ? (

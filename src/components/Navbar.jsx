@@ -90,7 +90,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={() => navigate(user ? '/posts' : '/')}>
+          <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={() => navigate('/posts')}>
             <span className="text-xl font-mono font-bold text-foreground flex items-center">
               <span className="text-primary mr-1">&lt;</span>
               BlogSpace

@@ -64,39 +64,39 @@
 
     --border: #e2e8f0;
     --input: #e2e8f0;
-    --ring: #0ea5e9;
+    --ring: #000000;
     
-    --radius: 0.5rem;
+    --radius: 0.25rem;
   }
   
   .dark {
-    --background: #020617; /* slate-950 */
-    --foreground: #f8fafc;
+    --background: #09090b; /* zinc-950 */
+    --foreground: #fafafa;
     
-    --card: #0f172a; /* slate-900 */
-    --card-foreground: #f8fafc;
+    --card: #09090b;
+    --card-foreground: #fafafa;
     
-    --popover: #0f172a;
-    --popover-foreground: #f8fafc;
+    --popover: #09090b;
+    --popover-foreground: #fafafa;
     
-    --primary: #0ea5e9;
-    --primary-foreground: #f8fafc;
+    --primary: #fafafa;
+    --primary-foreground: #09090b;
     
-    --secondary: #1e293b; /* slate-800 */
-    --secondary-foreground: #f8fafc;
+    --secondary: #27272a; /* zinc-800 */
+    --secondary-foreground: #fafafa;
     
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
+    --muted: #18181b; /* zinc-900 */
+    --muted-foreground: #a1a1aa;
     
-    --accent: #1e293b;
-    --accent-foreground: #f8fafc;
+    --accent: #18181b;
+    --accent-foreground: #fafafa;
     
     --destructive: #7f1d1d;
-    --destructive-foreground: #f8fafc;
+    --destructive-foreground: #fafafa;
 
-    --border: #1e293b;
-    --input: #1e293b;
-    --ring: #0ea5e9;
+    --border: #27272a;
+    --input: #27272a;
+    --ring: #fafafa;
   }
 }
 
@@ -107,6 +107,12 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  .dark body {
+    background-image: radial-gradient(#27272a 1px, transparent 0);
+    background-size: 24px 24px;
+    background-attachment: fixed;
   }
 }
 

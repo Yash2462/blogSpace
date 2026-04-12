@@ -124,55 +124,60 @@ const PostsGrid = ({ posts = [], onDelete }) => {
           <div
             key={postId}
             onClick={() => handlePostClick(post)}
-            className="group flex flex-col bg-card border border-border rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 h-full w-full"
+            className="group flex flex-col bg-card border border-border rounded-sm overflow-hidden cursor-pointer hover:border-foreground transition-colors duration-300 h-full w-full"
           >
             {(post.postImage || post.imageUrl) && (
-              <div className="w-full h-48 overflow-hidden bg-muted">
+              <div className="w-full h-48 overflow-hidden bg-muted relative border-b border-border">
                 <img
                   src={post.postImage || post.imageUrl}
                   alt={post.title || 'Post image'}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
                 />
               </div>
             )}
             
             <div className="flex flex-col flex-grow p-5">
-              <div className="flex justify-between items-start mb-3">
-                <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">
+              <div className="flex justify-between items-start mb-4">
+                <span className="inline-flex items-center rounded-sm bg-muted px-2 py-0.5 text-[11px] font-mono text-foreground border border-border uppercase tracking-wide">
                   {post.category?.name || 'Uncategorized'}
                 </span>
-                <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap pt-1">
                   {formatDate(post.createdAt || post.updatedAt)}
                 </span>
               </div>
               
-              <h2 className="text-xl font-bold text-foreground mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+              <h2 className="text-lg font-bold text-foreground mb-3 line-clamp-2 leading-snug group-hover:underline decoration-foreground/50 transition-all duration-300">
                 {post.title || 'Untitled Post'}
               </h2>
               
-              <p className="text-sm text-muted-foreground line-clamp-3 mb-4 flex-grow leading-relaxed">
+              <p className="text-sm font-mono text-muted-foreground/80 line-clamp-3 mb-5 flex-grow leading-relaxed group-hover:text-foreground/90 transition-colors duration-300">
                 {stripMarkdown(post.data || post.content) || 'No content available'}
               </p>
 
 
               {/* Reading time */}
-              <div className="text-[11px] font-medium text-muted-foreground mb-4 uppercase tracking-wider">
-                {Math.max(1, Math.ceil(((post.data || post.content || '').split(' ').length) / 200))} min read
+              <div className="flex items-center space-x-1.5 text-[10px] font-mono text-muted-foreground mb-4 uppercase tracking-widest">
+                <span>[{Math.max(1, Math.ceil(((post.data || post.content || '').split(' ').length) / 200))} min read]</span>
               </div>
               
               <div className="flex items-center justify-between pt-4 border-t border-border mt-auto">
-                <span className="text-xs font-medium text-foreground w-24 truncate">
-                  By {post.user?.username || 'Anonymous'}
-                </span>
+                <div className="flex items-center space-x-2.5 w-32 truncate">
+                  <div className="w-5 h-5 bg-muted border border-border flex items-center justify-center text-[10px] font-mono font-bold text-foreground">
+                    {post.user?.username?.charAt(0).toUpperCase() || 'A'}
+                  </div>
+                  <span className="text-xs font-mono font-semibold text-foreground truncate">
+                    @{post.user?.username || 'Anonymous'}
+                  </span>
+                </div>
                 
-                <div className="flex items-center space-x-3 text-muted-foreground">
+                <div className="flex items-center space-x-4 text-muted-foreground">
                   <button
                     onClick={(e) => handleLikeClick(e, postId)}
-                    className="flex items-center space-x-1 hover:text-red-500 transition-colors group/btn"
+                    className="flex items-center space-x-1.5 hover:text-foreground transition-colors group/btn"
                     title={isLiked ? 'Unlike' : 'Like'}
                   >
                     <Heart 
-                      className={`w-4 h-4 transition-transform group-hover/btn:scale-110 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} 
+                      className={`w-[14px] h-[14px] transition-all duration-300 ${isLiked ? 'fill-foreground text-foreground' : ''}`} 
                     />
                     <span className="text-xs">{stats.likes}</span>
                   </button>
@@ -185,17 +190,17 @@ const PostsGrid = ({ posts = [], onDelete }) => {
                     className="flex items-center space-x-1 hover:text-primary transition-colors group/btn"
                     title="View Comments"
                   >
-                    <MessageSquare className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
-                    <span className="text-xs">{stats.comments}</span>
+                    <MessageSquare className="w-[14px] h-[14px] transition-all duration-300" />
+                    <span className="text-xs font-mono">{stats.comments}</span>
                   </button>
 
                   {onDelete && (
                     <button
                       onClick={(e) => { e.stopPropagation(); onDelete(postId); }}
-                      className="flex items-center space-x-1 hover:text-destructive transition-colors group/btn ml-auto"
+                      className="flex items-center space-x-1 hover:text-red-500 transition-colors group/btn ml-auto"
                       title="Delete post"
                     >
-                      <Trash2 className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
+                      <Trash2 className="w-[14px] h-[14px] transition-all duration-300" />
                     </button>
                   )}
                 </div>
