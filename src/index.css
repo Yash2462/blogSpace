@@ -122,7 +122,15 @@
   }
   
   .aryan-block {
-    @apply bg-neutral-100 dark:bg-neutral-800/60 p-4 rounded-xl mb-6 font-mono text-[14px] leading-relaxed border border-border/40 transition-colors hover:border-primary/20;
+    @apply bg-neutral-100 dark:bg-neutral-800/60 p-4 rounded-xl mb-6 font-mono text-[14px] leading-relaxed border border-border/40 transition-colors hover:border-primary/20 text-foreground;
+  }
+
+  .post-heading {
+    @apply border-l-4 border-primary/20 bg-card/10 p-4 rounded-md text-primary font-bold;
+  }
+
+  .post-title {
+    @apply text-primary font-bold text-4xl sm:text-5xl tracking-tight leading-tight mb-8;
   }
   
   .aryan-text {

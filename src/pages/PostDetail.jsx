@@ -188,7 +188,7 @@ const PostDetail = () => {
           
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight leading-tight mb-8">
+            <h1 className="post-title">
               {post.title}
             </h1>
             
@@ -267,19 +267,19 @@ const PostDetail = () => {
             <ReactMarkdown
               components={{
                 h1: ({ children }) => (
-                  <div className="aryan-block">
+                  <div className="post-heading">
                     <span className="aryan-syntax">#</span>
                     <span className="font-bold text-xl">{children}</span>
                   </div>
                 ),
                 h2: ({ children }) => (
-                  <div className="aryan-block">
+                  <div className="post-heading">
                     <span className="aryan-syntax">##</span>
                     <span className="font-bold text-lg">{children}</span>
                   </div>
                 ),
                 h3: ({ children }) => (
-                  <div className="aryan-block">
+                  <div className="post-heading">
                     <span className="aryan-syntax">###</span>
                     <span className="font-bold">{children}</span>
                   </div>
