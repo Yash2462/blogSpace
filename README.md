@@ -2,7 +2,7 @@
 
 **A modern educational blog platform built for sharing knowledge, connecting with readers, and building learning communities**
 
-**Tech Stack:** Vite + React | Springboot | Modern UI/UX | Responsive Design
+**Tech Stack:** Vite + React | Spring Boot API | Material UI | Responsive Design
 
 ---
 
@@ -101,7 +101,7 @@ User registration system with comprehensive signup form, ensuring secure account
 
 ### Technical Highlights
 - **Frontend**: Built with Vite + React for fast, modern user experience
-- **Backend**: Node.js server with robust API architecture
+- **Backend**: Integrates with a Spring Boot REST API
 - **Design**: Responsive UI/UX optimized for all device sizes
 - **Performance**: Optimized loading and smooth user interactions
 
@@ -116,4 +116,20 @@ BlogSpace is specifically designed for educational content sharing, featuring:
 
 ## Getting Started
 
-This platform provides an intuitive interface for both content creators and readers, making it easy to share knowledge and build learning communities in the educational technology space.
+Requirements: Node.js 18+ and the BlogSpace API running locally or at a reachable URL.
+
+```bash
+npm install
+copy .env.example .env.local
+npm run dev
+```
+
+Set `VITE_API_BASE_URL` in `.env.local` when the backend is not available at
+`http://localhost:8080`.
+
+Useful checks:
+
+```bash
+npm run lint
+npm run build
+```
