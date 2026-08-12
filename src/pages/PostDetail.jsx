@@ -60,7 +60,6 @@ const PostDetail = () => {
   const [liking, setLiking] = useState(false);
 
   // Fetch the current post and the full post list to enable Prev/Next navigation
-  const [postsList, setPostsList] = useState([]);
   const [prevPostId, setPrevPostId] = useState(null);
   const [nextPostId, setNextPostId] = useState(null);
 
@@ -84,7 +83,6 @@ const PostDetail = () => {
         }
         const listData = listRes.data.data || listRes.data.posts || listRes.data;
         const sorted = (Array.isArray(listData) ? listData : []).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-        setPostsList(sorted);
         const currentId = postData.id || postData._id || postData.postId;
         const idx = sorted.findIndex(p => (p.id || p._id || p.postId) === currentId);
         if (idx !== -1) {

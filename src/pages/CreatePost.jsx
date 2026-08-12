@@ -123,7 +123,7 @@ const CreatePost = () => {
       setFormData(prev => ({ ...prev, data: prev.data + `\n\n![Uploaded Image](${imageUrl} "width=100%")\n` }));
       setIsDirty(true);
       setSnackbar({ open: true, message: 'Image added to post content!', severity: 'success' });
-    } catch (err) {
+    } catch {
       setSnackbar({ open: true, message: 'Image upload to editor failed', severity: 'error' });
     }
   };
